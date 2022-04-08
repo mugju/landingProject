@@ -1,17 +1,19 @@
-from django.shortcuts import render
-
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 from django.http import HttpResponse
 
 import json
 from django.views import View
 from django.http import JsonResponse
-from . import models
-
+from .models import Employee, Salary
+from user.models import User
 
 # Create your views here.
+# employee 출력 함수
+
 
 def emp_dic(Employee) : # 근로자 목록 출력
-    output = {}
+    output = dict()
 
     output["uid"] = Employee.emp_uid
     output["emp_name"] = Employee.emp_name
@@ -23,25 +25,57 @@ def emp_dic(Employee) : # 근로자 목록 출력
     return output
 
 
+# employee 생성 함수
+
+
+def emp_create(request,user_uid) :
+    user_num = get_object_or_404(User, pk=user_uid)
+    print('해당 하는 object num{}'.format(user_num))     # 값 확인해 보려고
+    employee = Employee(
+        user_uid=user_uid,
+        bank_uid=request.POST.get('bank_uid'),
+        emp_name=request.POST.get('emp_name'),
+        emp_joindate=request.POST.get('emp_join'),
+        emp_phone=request.POST.get('emp_phone'),
+        emp_address=request.POST.get('emp_address'),
+        emp_account_no=request.POST.get('emp_account'),
+        emp_added_on=timezone.now()
+    )
+    employee.save()
+    return redirect('/employee/')
+
+
 def index(request):
-    emp_dic_all = models.Employee.objects.all()
-    print('employee 총 갯수 : {}'.format(len(emp_dic_all)))
+    if request.method == 'GET':     # GET 방식일 경우
 
-    temp = []
+        emp_dic_all = Employee.objects.all()
+        print('employee 총 갯수 : {}'.format(len(emp_dic_all)))
 
-    for i in range(1,len(emp_dic_all)+1):
-        print(i)
-        temp.append(emp_dic(models.Employee.objects.get(emp_uid=i)))
+        temp = []
 
-    print(temp)
+        for i in range(1,len(emp_dic_all)+1):
+            print(i)
+            temp.append(emp_dic(Employee.objects.get(emp_uid=i)))
+
+        print(temp)
+        return HttpResponse(temp)
+
+    if request.method == 'POST':  # POST 방식일 경우
+        print("근로자 만드는 함수 돌리쟈")
+        emp_create(request,request.POST.get('user_uid'))
 
 
-    return HttpResponse(temp)
+def add_salary(request):
+    print("급여 추가")
 
-    ## data_test code
-    # data = {
-    #     "name": "Vaibhav",
-    #     "age": 20,
-    #     "hobbies": ["Coding", "Art", "Gaming", "Cricket", "Piano"]
-    # }
-    # return HttpResponse(json.dumps(data), content_type = "application/json")
+
+def edit_salary(request):
+    print("급여 수정")
+
+
+def delete_salary(request, sal_uid):
+    print("인자 받아 와서 바로 삭제함. sal_uid 받야야 함. ")
+
+
+def delete_employee(request,emp_uid):
+    print("인자 받아 와서 근로자 uid 기반 으로 삭제 들어감")

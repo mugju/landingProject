@@ -3,6 +3,8 @@ from user import models as USER
 from bank import models as BANK
 
 # Create your models here.
+
+
 class Employee(models.Model):
     emp_uid = models.AutoField(primary_key=True)
     user_uid = models.ForeignKey(USER.User, on_delete=models.CASCADE, db_column='user_uid')
@@ -13,6 +15,7 @@ class Employee(models.Model):
     emp_address = models.CharField(max_length=50)
     emp_account_no = models.CharField(max_length=20)
     emp_added_on = models.DateTimeField(auto_now_add="True")
+
 
 class Salary(models.Model):
     sal_uid = models.AutoField(primary_key = True)
