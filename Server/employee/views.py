@@ -85,31 +85,22 @@ def emp_index(request):
 
         emp_dic_all = Employee.objects.filter(user_uid=1)  # 유저에 해당하는 직원만 받아와야 하기에 필터설정
 
-        print('employee 총 갯수 : {}'.format(len(emp_dic_all)))
-        for em in emp_dic_all:
-            print(emp_dic(em))
         emp_temp = []  # employee dict을 담을 배열
 
         for i in emp_dic_all:
             emp_temp.append(emp_dic(i))
 
-        print(emp_temp)
+        bank_dic_all = Bank.objects.all()  # 모든 은행정보를 받아옴.
 
-        bank_dic_all = Bank.objects.all()
-        print('bank 총 갯수 : {}'.format(len(bank_dic_all)))
-
-        bank_temp = []
+        bank_temp = []  # bank 정보를 담아둘 배열
         for i in range(1, len(bank_dic_all) + 1):
             bank_temp.append(bank_dic(Bank.objects.get(bank_uid=i), i))
-
-        print(bank_temp)
 
         output = OrderedDict()
         output["employee_list"] = emp_temp
         output["bank_list"] = bank_temp
         print(json.dumps(output, ensure_ascii=False, indent="\t"))
         result = json.dumps(output, ensure_ascii=False, indent="\t")
-        # return JsonResponse(json.dumps(output,ensure_ascii=False, indent="\t"),safe=False)
         return HttpResponse(result,
                             content_type=u"application/json; charset=utf-8",
                             status=200)
@@ -122,8 +113,8 @@ def emp_index(request):
 def emp_detail(request, emp_uid):
     if request.method == 'GET':  # employee -> views
         emp = emp_dic(Employee.objects.get(emp_uid=emp_uid))
-        print('employee 정보 : {}'.format(emp))
+
     emp = json.dumps(emp, ensure_ascii=False, indent="\t")
     return HttpResponse(emp,
-                            content_type=u"application/json; charset=utf-8",
-                            status=200)  # json 형태 output으로 바꿔줘야함.
+                        content_type=u"application/json; charset=utf-8",
+                        status=200)  # json 형태 output으로 바꿔줘야함.
