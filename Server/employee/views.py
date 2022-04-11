@@ -42,10 +42,40 @@ def emp_create(request,user_uid) :
         emp_added_on=timezone.now()
     )
     employee.save()
-    return redirect('/employee/')
+    return redirect('employee/')
+
+def edit_employee(request, emp_uid):
+    print("인자 받아 와서 근로자 uid 기반 으로 수정 들어감")
+    employee = get_object_or_404(Employee, pk=emp_uid)
+    employee.emp_name = request.POST.get("emp_name")
+    employee.emp_joindate = request.POST.get('emp_join')
+    employee.emp_phone = request.POST.get('emp_phone')
+    employee.emp_address = request.POST.get('emp_address')
+    employee.emp_account_no = request.POST.get('emp_account')
+
+    employee.save()
 
 
-def index(request):
+
+
+def add_salary(request,emp_uid):
+    print("급여 추가")
+    get_object_or_404(Employee, pk=emp_uid)
+
+
+def edit_salary(request):
+    print("급여 수정")
+
+
+def delete_salary(request, sal_uid):
+    print("인자 받아 와서 바로 삭제함. sal_uid 받야야 함. ")
+
+
+
+
+
+
+def emp_index(request):
     if request.method == 'GET':     # GET 방식일 경우
 
         emp_dic_all = Employee.objects.all()
@@ -62,20 +92,14 @@ def index(request):
 
     if request.method == 'POST':  # POST 방식일 경우
         print("근로자 만드는 함수 돌리쟈")
-        emp_create(request,request.POST.get('user_uid'))
+        emp_create(request, request.POST.get('user_uid'))
 
 
-def add_salary(request):
-    print("급여 추가")
+def emp_detail(request, emp_uid) :
+    if request.method == 'GET' :         # employee -> views
+        emp = emp_dic(Employee.objects.get(emp_uid = emp_uid ))
+        print('employee 정보 : {}'.format(emp))
+
+    return HttpResponse(emp)        # json 형태 output으로 바꿔줘야함.
 
 
-def edit_salary(request):
-    print("급여 수정")
-
-
-def delete_salary(request, sal_uid):
-    print("인자 받아 와서 바로 삭제함. sal_uid 받야야 함. ")
-
-
-def delete_employee(request,emp_uid):
-    print("인자 받아 와서 근로자 uid 기반 으로 삭제 들어감")
