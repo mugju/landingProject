@@ -10,7 +10,7 @@ from bank.models import Bank  # 은행 uid와  이름 형태 JSON 출력을 위�
 from user.models import User
 
 
-# employee 출력 함수
+# DIC 생성 함수들  models 객체 -> 딕셔너리 형태
 
 
 def emp_dic(Employee):  # 근로자 JSON 출력
@@ -34,36 +34,65 @@ def bank_dic(Bank, seq):  # 은행 JSON 형태 출력
     return output
 
 
+def sal_dic(Salary):        # 급여 json 출력
+    output = dict()
+    output["sal_uid"] = Salary.sal_uid
+    output["sal_date"] = str(Salary.sal_date)
+    output["sal_amount"] = Salary.sal_amount
+    output["sal_addOn"] = str(Salary.sal_joindate)
+
+    return output
+
+
 # employee 생성 함수
 
+def emp_create(request):
 
-def emp_create(request, user_uid):
-    user_num = get_object_or_404(User, pk=user_uid)
-    print('해당 하는 object num{}'.format(user_num))  # 값 확인해 보려고
+    # 외래키의 경우 무조건 해당 모델의 인스턴스를 집어 넣어야 하므로 임의의 값을
+    #생성해서 넣어주도록 한다.
+
+    sample_useruid =User.objects.get(user_uid = 1)
+    sample_bankuid = Bank.objects.get(bank_uid = 1)
+
+    emp_data = json.loads(request.body)     # JSON data parsing
+    
+    
     employee = Employee(
-        user_uid=user_uid,
-        bank_uid=request.POST.get('bank_uid'),
-        emp_name=request.POST.get('emp_name'),
-        emp_joindate=request.POST.get('emp_join'),
-        emp_phone=request.POST.get('emp_phone'),
-        emp_address=request.POST.get('emp_address'),
-        emp_account_no=request.POST.get('emp_account'),
+        user_uid=sample_useruid,
+        bank_uid=sample_bankuid,
+        emp_name=emp_data["emp_name"],
+        emp_joindate=emp_data["emp_joindate"],
+        emp_phone=emp_data["emp_phone"],
+        emp_address=emp_data["emp_address"],
+        emp_account_no=emp_data["emp_account_no"],
         emp_added_on=timezone.now()
     )
     employee.save()
-    return redirect('employee/')
+    return redirect('/employee')
 
 
-def edit_employee(request, emp_uid):
-    print("인자 받아 와서 근로자 uid 기반 으로 수정 들어감")
-    employee = get_object_or_404(Employee, pk=emp_uid)
-    employee.emp_name = request.POST.get("emp_name")
-    employee.emp_joindate = request.POST.get('emp_join')
-    employee.emp_phone = request.POST.get('emp_phone')
-    employee.emp_address = request.POST.get('emp_address')
-    employee.emp_account_no = request.POST.get('emp_account')
-
+def edit_employee(request,emp_uid):
+    print("hello edit")
+    emp_data = json.loads(request.body)  # JSON data parsing
+    print("emp_data: {}".format(emp_data))
+    # emp_uid = emp_data["emp_uid"]
+    employee = Employee.objects.get(emp_uid = emp_uid)
+    employee.emp_name = emp_data["emp_name"]
+    employee.emp_joindate = emp_data["emp_joindate"]
+    employee.emp_phone = emp_data["emp_phone"]
+    employee.emp_address = emp_data["emp_address"]
+    employee.emp_account_no = emp_data["emp_account_no"]
     employee.save()
+
+    for sal in emp_data['emp_salary']:
+        print(sal)
+        salary = Salary.objects.get(sal_uid= sal["sal_uid"])
+        salary.sal_date = sal["sal_date"]
+        salary.sal_amount = sal["sal_amount"]
+        salary.sal_joindate = sal["sal_addOn"]
+
+        salary.save()
+    return "200"
 
 
 def add_salary(request, emp_uid):
@@ -81,7 +110,6 @@ def delete_salary(request, sal_uid):
 
 def emp_index(request):
     if request.method == 'GET':  # GET 방식일 경우 딕셔너리 조작후, json 변환 시도.
-        # model 을 2N번  접근하는 현재 문제에 대한 개선 필요.
 
         emp_dic_all = Employee.objects.filter(user_uid=1)  # 유저에 해당하는 직원만 받아와야 하기에 필터설정
 
@@ -93,8 +121,11 @@ def emp_index(request):
         bank_dic_all = Bank.objects.all()  # 모든 은행정보를 받아옴.
 
         bank_temp = []  # bank 정보를 담아둘 배열
-        for i in range(1, len(bank_dic_all) + 1):
-            bank_temp.append(bank_dic(Bank.objects.get(bank_uid=i), i))
+
+        seq = 1  # 은행 uid
+        for i in bank_dic_all:
+            bank_temp.append(bank_dic(i,seq))
+            seq = seq+1
 
         output = OrderedDict()
         output["employee_list"] = emp_temp
@@ -105,16 +136,37 @@ def emp_index(request):
                             content_type=u"application/json; charset=utf-8",
                             status=200)
 
-    if request.method == 'POST':  # POST 방식일 경우
+    if request.method == 'POST':  # POST 방식일 경우 근로자 만들 수 있어야 함.
         print("근로자 만드는 함수 돌리쟈")
-        emp_create(request, request.POST.get('user_uid'))
+        result = emp_create(request)     # 현재 함수 탈출이 안됨
+        
+        return HttpResponse(result)
+
 
 
 def emp_detail(request, emp_uid):
     if request.method == 'GET':  # employee -> views
         emp = emp_dic(Employee.objects.get(emp_uid=emp_uid))
+        sal_dic_all = Salary.objects.filter(emp_uid = emp_uid)
 
-    emp = json.dumps(emp, ensure_ascii=False, indent="\t")
-    return HttpResponse(emp,
-                        content_type=u"application/json; charset=utf-8",
-                        status=200)  # json 형태 output으로 바꿔줘야함.
+        sal_list = []
+        for i in sal_dic_all:
+            sal_list.append(sal_dic(i))
+
+        emp["emp_salary"] = sal_list
+
+
+        emp = json.dumps(emp, ensure_ascii=False, indent="\t")
+        return HttpResponse(emp,
+                            content_type=u"application/json; charset=utf-8",
+                            status=200)  # json 형태 output으로 바꿔줘야함.
+
+
+    if request.method =='PATCH': # 회원정보 수정할경우
+        print("근로자 디테일 수정.")
+        result = edit_employee(request,emp_uid)
+
+        return HttpResponse(result,
+                            content_type=u"application/json; charset=utf-8",
+                            status=200)
+
