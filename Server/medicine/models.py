@@ -19,6 +19,8 @@ class Medicine(models.Model) :
     med_qty = models.PositiveSmallIntegerField()
     med_company = models.CharField(max_length=30)
 
+
+
 class Med_salt(models.Model) :
     salt_uid = models.AutoField(primary_key=True)
     med_uid = models.ForeignKey(Medicine, on_delete=models.CASCADE, db_column='med_uid')
