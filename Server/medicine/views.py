@@ -18,6 +18,7 @@ def med_index(request):
         medicine_list = Medicine.objects.filter(user_uid=user_uid)#uer_id session에서 받아오기
         context = {'medicine_list': medicine_list}
         return render(request, 'medicine/med_list.html',context)
+        #commit test
 
 
 
