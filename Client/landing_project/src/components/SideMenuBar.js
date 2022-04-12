@@ -6,11 +6,11 @@ import {Divider, List, ListItem, ListItemButton, ListItemText} from "@mui/materi
 import "./SideMenuBar.css";
 
 import Home from "../pages/Home";
-import ManageCompany from "../pages/ManageCompany";
-import ManageCompanyAccount from "../pages/ManageCompanyAccount";
-import ManageEmployee from "../pages/ManageEmployee";
-import ManageMedicine from "../pages/ManageMedicine";
-import GenerateBill from "../pages/GenerateBill";
+import Company from "../pages/Company/Company";
+import CompanyAccount from "../pages/CompanyAccount/CompanyAccount";
+import Employee from "../pages/Employee";
+import Medicine from "../pages/Medicine";
+import Bill from "../pages/Bill";
 import CustomerRequest from "../pages/CustomerRequest";
 
 
@@ -27,27 +27,27 @@ export default function SideMenuBar() {
                             <ListItemText primary="Home" />
                         </ListItem>
                     </Link>
-                    <Link className="link" to="/manageCompany">
+                    <Link className="link" to="/company">
                         <ListItem button divider>
                             <ListItemText primary="Manage Company" />
                         </ListItem>
                     </Link>
-                    <Link className="link" to="/manageCompanyAccount">
+                    <Link className="link" to="/companyAccount">
                         <ListItem button divider>
                             <ListItemText primary="Manage Company Account" />
                         </ListItem>
                     </Link>
-                    <Link className="link" to="/manageEmployee">
+                    <Link className="link" to="/employee">
                         <ListItem button divider>
                             <ListItemText primary="Manage Employee" />
                         </ListItem>
                     </Link>
-                    <Link className="link" to="/manageMedicine">
+                    <Link className="link" to="/medicine">
                         <ListItem button divider>
                             <ListItemText primary="Manage Medicine" />
                         </ListItem>
                     </Link>
-                    <Link className="link" to="/generateBill">
+                    <Link className="link" to="/bill">
                         <ListItem button divider>
                             <ListItemText primary="Generate Bill" />
                         </ListItem>
@@ -61,11 +61,11 @@ export default function SideMenuBar() {
 
                 <Routes>
                     <Route className="" path="/" element={<Home/>} />
-                    <Route className="" path="/manageCompany" element={<ManageCompany/>} />
-                    <Route className="" path="/manageCompanyAccount" element={<ManageCompanyAccount/>} />
-                    <Route className="" path="/manageEmployee" element={<ManageEmployee/>} />
-                    <Route className="" path="/manageMedicine" element={<ManageMedicine/>} />
-                    <Route className="" path="/generateBill" element={<GenerateBill/>} />
+                    <Route className="" path="/company" element={<Company/>} />
+                    <Route className="" path="/companyAccount" element={<CompanyAccount/>} />
+                    <Route className="" path="/employee" element={<Employee/>} />
+                    <Route className="" path="/medicine" element={<Medicine/>} />
+                    <Route className="" path="/bill" element={<Bill/>} />
                     <Route className="" path="/customerRequest" element={<CustomerRequest/>} />
                 </Routes>
 

@@ -1,0 +1,105 @@
+/*Button{*/
+/*    text-transform: none;*/
+/*}*/
+
+.tableContainer{
+    background-color: cadetblue;
+    /*margin: 20px;*/
+    padding: 20px;
+}
+
+
+
+.pContainer{
+    /* background-color: blue; */
+
+}
+
+.pagination{
+    /* background-color: aqua; */
+    display: flex;
+    justify-content: center;
+}
+
+.viewBtn{
+    /*background-color: chartreuse;*/
+}
+
+
+.modal{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* width: 700px; */
+    /* background-color: aliceblue; */
+
+}
+
+.modalContainer{
+    /* text-align: right; */
+    background-color: lightgray;
+    /* padding: 10px 20px 20px 20px; */
+    /*height: 100%;*/
+    width: 600px;
+}
+
+.btnContainer{
+    display: grid;
+    grid-template-columns: 1fr 1fr ;
+}
+
+.closeBtn{
+    text-align: right;
+}
+
+.iconBtn{
+    background-color: red;
+    /* text-align: center; */
+    /*display: flex;*/
+    /*align-items: center;*/
+    /*width: 300px;*/
+}
+
+
+.modalInnerContainer{
+    background-color: #FFFFFF;
+    display: grid;
+    grid-template-columns: 100px 10px 1fr;
+    gap: 30px;
+    padding: 10px;
+}
+
+
+.cell{
+    
+    background-color: aqua;
+    
+    width: 100px;
+    height: 100px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.editBtn, .saveBtn{
+    text-align: right;
+}
+
+
+.titleContainer{
+    /* background-color: blue; */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: 10px;
+}
+
+.titleContainer > div:nth-child(1){
+    /* background-color: aquamarine; */
+    font-weight: 500;
+    font-size: xx-large;
+    /* text-align: right; */
+}
+
+.titleContainer > div:nth-child(2){
+    /* background-color: antiquewhite; */
+    text-align: right;
+}

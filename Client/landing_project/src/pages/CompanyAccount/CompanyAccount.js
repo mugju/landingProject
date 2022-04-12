@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ManageCompanyAccount() {
+export default function CompanyAccount() {
     return (
         <>
             <div>ManageCompanyAccount</div>

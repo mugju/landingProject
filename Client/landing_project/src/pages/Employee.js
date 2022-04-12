@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ManageEmployee() {
+export default function Employee() {
     return (
         <>
             <div>ManageEmployee</div>
