@@ -7,25 +7,27 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,Permiss
 class UserManager(BaseUserManager):     #슈퍼유저를 만들어줄 무언가..?
     use_in_migrations = True
 
-    def create_user(self, user_email,  user_pw):
+    def create_user(self, user_email,  password, user_storename):
 
         if not user_email:
             raise ValueError('must have user email')
-        if not user_pw:
+        if not password:
             raise ValueError('must have user password')
 
         user = self.model(
             user_email=self.normalize_email(user_email), # 이메일 정규화
+            user_storename = user_storename
         )
-        user.set_password(user_pw)
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, user_email,  user_pw):
+    def create_superuser(self, user_email,  password, storename):
 
         user = self.create_user(
             user_email=self.normalize_email(user_email),
-            user_pw=user_pw
+            password=password,
+            storename = "슈퍼유저"
         )
         user.is_admin = True
         user.is_superuser = True
@@ -35,7 +37,7 @@ class UserManager(BaseUserManager):     #슈퍼유저를 만들어줄 무언가.
 
 class User(AbstractBaseUser, PermissionsMixin):
 
-    # objects = UserManager()
+    objects = UserManager()
 
     user_uid = models.AutoField(primary_key=True)
     user_email = models.EmailField(
