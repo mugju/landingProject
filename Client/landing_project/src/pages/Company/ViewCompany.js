@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
+import {Box, IconButton, Button, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
 
-export default function ViewCompany({ key, comName, Licence_No, address, contact_No, email, description }) {
+export default function ViewCompany({ uid, setModalPage, comName, Licence_No, address, contact_No, email, description }) {
     return (
         <>
             <div className="modalInnerContainer">
@@ -22,6 +23,9 @@ export default function ViewCompany({ key, comName, Licence_No, address, contact
                 <div>Description</div>
                 <div>:</div>
                 <div>{description}</div>
+                <div>
+                    <Button variant="contained" onClick={() => setModalPage('edit')}>Edit</Button>
+                </div>
             </div>
         </>
     )

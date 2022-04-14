@@ -1,13 +1,26 @@
 import React, {useEffect, useState} from 'react';
-import {Box, IconButton, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
+import {Box, IconButton, Button, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
 
-export default function EditCompany({ key, comName, Licence_No, address, contact_No, email, description }) {
+export default function EditCompany({ uid, closeModal }) {
+    const clickSave = () => {
+        // submit 함수 추가하기
+        closeModal();
+        // 저장되었다는 응답 받으면 배너 띄우기
+    }
+    const clickDelete = () => {
+        // alert 띄워서 확인해주기
+        // submit 함수 추가하기
+
+        // 삭제되었다는 응답 받으면 배너 띄우기
+    }
     return (
         <>
             <div className="modalInnerContainer">
                 <div>Name</div>
                 <div>:</div>
-                <TextField
+
+                <div>{uid}</div>
+                {/* <TextField
                     required
                     label="Required"
                     defaultValue={comName}
@@ -55,7 +68,10 @@ export default function EditCompany({ key, comName, Licence_No, address, contact
                     label="Required"
                     defaultValue={description}
                     size="small"
-                    />
+                    /> */}
+                <div className="saveBtn">
+                    <Button variant="contained" onClick={() => clickSave()}>Save</Button>
+                </div>
             </div>
         </>
     )

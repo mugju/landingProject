@@ -1,5 +1,120 @@
 .container {
-  background-color: blueviolet;
   display: grid;
   grid-template-columns: 300px 1fr;
+}
+
+.innerContainer{
+  background-color: #d9d9d9;
+  padding: 20px;
+}
+
+.titleContainer{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-bottom: 10px;
+}
+
+.titleContainer > div:nth-child(1){
+  font-weight: 500;
+  font-size: xx-large;
+}
+
+.titleContainer > div:nth-child(2){
+  text-align: right;
+}
+
+.pagination{
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+}
+
+
+
+
+
+
+
+
+/* 밑에 정리하기 */
+
+
+.modal{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* width: 700px; */
+  /* background-color: aliceblue; */
+
+}
+
+.modalContainer{
+  /* text-align: right; */
+  background-color: lightgray;
+  /* padding: 10px 20px 20px 20px; */
+  /*height: 100%;*/
+  width: 600px;
+}
+
+.btnContainer{
+  display: grid;
+  grid-template-columns: 1fr 1fr ;
+}
+
+.closeBtn{
+  text-align: right;
+}
+
+.iconBtn{
+  background-color: red;
+  /* text-align: center; */
+  /*display: flex;*/
+  /*align-items: center;*/
+  /*width: 300px;*/
+}
+
+
+.modalInnerContainer{
+  background-color: #FFFFFF;
+  display: grid;
+  grid-template-columns: 100px 10px 1fr;
+  gap: 30px;
+  padding: 10px;
+}
+
+
+/* .cell{
+  
+  background-color: aqua;
+  
+  width: 100px;
+  height: 100px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+} */
+
+.editBtn, .saveBtn{
+  text-align: right;
+}
+
+
+
+
+
+
+
+
+
+
+.test{
+  width: 300px;
+}
+
+.rowContainer{
+  background-color: red;
+  width: 300px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  
 }

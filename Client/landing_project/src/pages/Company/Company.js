@@ -1,8 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 
-import "./Company.css";
-
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -19,9 +17,11 @@ import {Box, IconButton, Modal, Typography, TextField, Tooltip, Divider} from "@
 import ClearIcon from '@mui/icons-material/Clear';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-
+import AddCompany from './AddCompany';
 import EditCompany from './EditCompany';
 import ViewCompany from './ViewCompany';
+
+import styles from './Company.module.css';
 
 
 const URL = "https://4980c1be-d5e3-4906-a3a7-d989af4b993b.mock.pstmn.io/user";
@@ -30,18 +30,13 @@ const URL = "https://4980c1be-d5e3-4906-a3a7-d989af4b993b.mock.pstmn.io/user";
 export default function Company() {
     const [json, setJson] = useState([]);
     const [rows, setRows] = useState([]);
-
-    const [loading, setLoading] = useState(false);
-
+    const [loading, setLoading] = useState(true);
     const [rowCount, setRowCount] = useState(5);
     const [pageCount, setPageCount] = useState(10);
 
-    const [currModal, setCurrModal] = useState(0);
-
-    const [open, setOpen] = useState(false);
-    const [edit, setEdit] = useState(false);
-
-
+    const [modalPage, setModalPage] = useState('add');
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalNum, setModalNum] = useState(0);
 
     const fetchUrl = async (url) => {
         const response = await axios.get(url);
@@ -50,22 +45,36 @@ export default function Company() {
         setRows(resData.slice(0, rowCount));
         setPageCount(Math.ceil(resData.length / rowCount));
 
-        setLoading(true);
+        setLoading(false);
     }
 
-
-    const openModal = (uid) => {
-        setOpen(true);
-        setCurrModal(uid);
+    const openModal = (state, uid) => {
+        setModalNum(uid);
+        setModalPage(state);
+        setModalOpen(true);
     }
+
     const closeModal = () => {
-        setOpen(false);
-        setEdit(false);
+        setModalOpen(false);
     }
 
+    const selectModal = (state, uid) => {
+        if (state === 'add') {
+            return <div>add</div>;
+        } else if (state === 'view') {
+            return <ViewCompany 
+                uid = {uid}
+                setModalPage = {setModalPage}
+            />;
+        } else if (state === 'edit') {
+            return <EditCompany
+                uid = {uid}
+                closeModal = {closeModal}
+            />;
+        }
+    }
 
-
-    const handleChange = (event, value) => {
+    const handlePagi = (event, value) => {
         const first = value * rowCount - rowCount;
         const last = value * rowCount;
         const maxLen = json.length;
@@ -78,65 +87,100 @@ export default function Company() {
     }, []);
 
 
-    if (!loading) {
+    if (loading) {
         return null; // 로딩중 아이콘 넣기
     }
 
     return (
         <>
-            <div className="tableContainer">
+            <div className="innerContainer">
                 <div className="titleContainer">
-                    <div>Company List</div>
-                    <div><Button variant="contained" size="medium">Add Company</Button></div>
+                    <div>All Companies</div>
+                    <div>
+                        <Button 
+                            variant="contained" 
+                            size="medium"
+                            onClick={() => openModal('add')}
+                        >
+                            Add Company
+                        </Button>
+                    </div>
                 </div>
                 <TableContainer component={Paper}>
-                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                    <Table sx={{width:'100%'}}>
                         <TableHead>
                             <TableRow>
                                 <TableCell>No.</TableCell>
-                                <TableCell align="right">Name</TableCell>
-                                <TableCell align="right">License No.</TableCell>
-                                <TableCell align="right">Address</TableCell>
-                                <TableCell align="right">Contact No.</TableCell>
-                                <TableCell align="right">Email</TableCell>
-                                <TableCell align="right">Description</TableCell>
-                                <TableCell align="right">Added On</TableCell>
-                                <TableCell align="right">Action</TableCell>
+                                <TableCell>Name</TableCell>
+                                <TableCell>License No.</TableCell>
+                                <TableCell>Address</TableCell>
+                                <TableCell>Contact No.</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Description</TableCell>
+                                <TableCell>Added On</TableCell>
+                                <TableCell>Action</TableCell>
                             </TableRow>
                         </TableHead>
-                        <TableBody>
-                            {rows.map((row, index) => (
+                        <TableBody className={styles.tableBody}>
+                            {rows.map((row) => (
                                 <TableRow
                                     key={row.uid}
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                 >
-                                    <TableCell component="th" scope="row">
-                                        {index + 1}
+                                    <TableCell component="th" scope="row">{row.uid}</TableCell>
+                                    <TableCell><div>{row.comName}</div></TableCell>
+                                    <TableCell><div>{row.Licence_No}</div></TableCell>
+                                    <TableCell><div>{row.address}</div></TableCell>
+                                    <TableCell><div>{row.contact_No}</div></TableCell>
+                                    <TableCell><div>{row.email}</div></TableCell>
+                                    <TableCell><div>{row.description}</div></TableCell>
+                                    <TableCell><div>{row.joinDate}</div></TableCell>
+                                    <TableCell>
+                                        <Button 
+                                            variant="contained" 
+                                            size="small" 
+                                            onClick={() => openModal('view', row.uid)}
+                                        >
+                                            View
+                                            </Button>
                                     </TableCell>
-                                    <TableCell align="right">{row.comName}</TableCell>
-                                    <TableCell align="right">{row.Licence_No}</TableCell>
-                                    <TableCell align="right">{row.address}</TableCell>
-                                    <TableCell align="right">{row.contact_No}</TableCell>
-                                    <TableCell align="right">{row.email}</TableCell>
-                                    <TableCell align="right">{row.description}</TableCell>
-                                    <TableCell align="right">{row.joinDate}</TableCell>
-                                    <TableCell align="right"><Button variant="contained" size="small" onClick={() => openModal(row.uid)}>View</Button></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
-
-                    <Divider />
-                    <Stack className="pContainer" spacing={2}>
-                        <Pagination className="pagination" count={pageCount} onChange={handleChange} color="primary" />
-                    </Stack>
-
                 </TableContainer>
+
+                <Pagination className="pagination" count={pageCount} onChange={handlePagi} color="primary" />
+                {/* 페이지네이션 직접 구현해야될듯 */}
+                
             </div>
 
-
-
             <Modal
+                className="modal"
+                open={modalOpen}
+                onClose={closeModal}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <>
+                    {selectModal(modalPage, modalNum)}
+
+                </>
+            </Modal>
+
+
+
+
+{/* 
+            <AddCompany />
+            <ViewCompany />
+            <EditCompany />
+             */}
+
+
+            {/* 모달별로 분리하기 */}
+
+
+            {/* <Modal
                 className="modal"
                 open={open}
                 onClose={closeModal}
@@ -163,38 +207,20 @@ export default function Company() {
                     
                     {edit ? (
                         <>
-                            <EditCompany 
-                                key = {currModal}
-                                comName = {json[currModal].comName}
-                                Licence_No = {json[currModal].Licence_No}
-                                address = {json[currModal].address}
-                                contact_No = {json[currModal].contact_No}
-                                email = {json[currModal].email}
-                                description = {json[currModal].description}
-                            />
-                            <div className="saveBtn">
-                                <Button variant="contained" onClick={() => setEdit(false)}>Save</Button>
-                            </div>
+
                         </>
                     ) : (
                         <>
-                            <ViewCompany 
-                                key = {currModal}
-                                comName = {json[currModal].comName}
-                                Licence_No = {json[currModal].Licence_No}
-                                address = {json[currModal].address}
-                                contact_No = {json[currModal].contact_No}
-                                email = {json[currModal].email}
-                                description = {json[currModal].description}
-                            />
-                            <div className="editBtn">
-                                <Button variant="contained" onClick={() => setEdit(true)}>Edit</Button>
-                            </div>
+
                         </>
                     )}
 
                 </div>
-            </Modal>
+            </Modal> */}
+
+
+
+
 
             {/* <Modal
                 className="modal"
