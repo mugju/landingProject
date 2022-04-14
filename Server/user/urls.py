@@ -4,6 +4,6 @@ from . import views
 urlpatterns = [
     path('signin/',views.signin),
     path('signup/', views.signup),
-    # path('signin/'),
+    path('find/',views.pw_find),
 
 ]
