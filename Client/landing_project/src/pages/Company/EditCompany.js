@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, IconButton, Button, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
 
-export default function EditCompany({ uid, closeModal }) {
+export default function EditCompany({ row, closeModal }) {
     const clickSave = () => {
         // submit 함수 추가하기
         closeModal();
@@ -19,7 +19,7 @@ export default function EditCompany({ uid, closeModal }) {
                 <div>Name</div>
                 <div>:</div>
 
-                <div>{uid}</div>
+                <div>{row.com_uid}</div>
                 {/* <TextField
                     required
                     label="Required"

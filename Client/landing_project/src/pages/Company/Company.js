@@ -10,7 +10,6 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
 import Pagination from '@mui/material/Pagination';
-import Stack from '@mui/material/Stack';
 import Button from "@mui/material/Button";
 import {Box, IconButton, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
 
@@ -24,33 +23,29 @@ import ViewCompany from './ViewCompany';
 import styles from './Company.module.css';
 
 
-const URL = "https://4980c1be-d5e3-4906-a3a7-d989af4b993b.mock.pstmn.io/user";
-
+const URL = "http://localhost:5000/company/&page=";
+const pageCount = 10;
 
 export default function Company() {
-    const [json, setJson] = useState([]);
     const [rows, setRows] = useState([]);
+    const [maxPage, setMaxPage] = useState(10);
     const [loading, setLoading] = useState(true);
-    const [rowCount, setRowCount] = useState(5);
-    const [pageCount, setPageCount] = useState(10);
 
-    const [modalPage, setModalPage] = useState('add');
+    const [modalState, setModalState] = useState('view');
     const [modalOpen, setModalOpen] = useState(false);
-    const [modalNum, setModalNum] = useState(0);
+    const [modalRow, setModalRow] = useState(0);
 
-    const fetchUrl = async (url) => {
-        const response = await axios.get(url);
+    const fetchUrl = async (URL, page) => {
+        const response = await axios.get(URL + page);
         const resData = response.data;
-        setJson(resData);
-        setRows(resData.slice(0, rowCount));
-        setPageCount(Math.ceil(resData.length / rowCount));
-
+        setRows(resData.company_list);
+        setMaxPage(Math.ceil(resData.companyallcount / pageCount))
         setLoading(false);
     }
 
-    const openModal = (state, uid) => {
-        setModalNum(uid);
-        setModalPage(state);
+    const openModal = (state, row) => {
+        setModalRow(row);
+        setModalState(state);
         setModalOpen(true);
     }
 
@@ -58,32 +53,30 @@ export default function Company() {
         setModalOpen(false);
     }
 
-    const selectModal = (state, uid) => {
+    const selectModal = (state, row) => {
         if (state === 'add') {
             return <div>add</div>;
         } else if (state === 'view') {
             return <ViewCompany 
-                uid = {uid}
-                setModalPage = {setModalPage}
+                key = {row.uid}
+                row = {row}
+                setModalState = {setModalState}
             />;
         } else if (state === 'edit') {
             return <EditCompany
-                uid = {uid}
+                key = {row.uid}
+                row = {row}
                 closeModal = {closeModal}
             />;
         }
     }
 
-    const handlePagi = (event, value) => {
-        const first = value * rowCount - rowCount;
-        const last = value * rowCount;
-        const maxLen = json.length;
-
-        setRows(json.slice(first, last > maxLen ? maxLen : last));
+    const handlePagi = (event, page) => {
+        fetchUrl(URL, page);
     }
 
     useEffect(() => {
-        fetchUrl(URL);
+        fetchUrl(URL, 1);
     }, []);
 
 
@@ -124,24 +117,24 @@ export default function Company() {
                         <TableBody className={styles.tableBody}>
                             {rows.map((row) => (
                                 <TableRow
-                                    key={row.uid}
+                                    key={row.com_uid}
                                 >
-                                    <TableCell component="th" scope="row">{row.uid}</TableCell>
-                                    <TableCell><div>{row.comName}</div></TableCell>
-                                    <TableCell><div>{row.Licence_No}</div></TableCell>
+                                    <TableCell component="th" scope="row">{row.com_uid}</TableCell>
+                                    <TableCell><div>{row.com_name}</div></TableCell>
+                                    <TableCell><div>{row.com_address}</div></TableCell>
                                     <TableCell><div>{row.address}</div></TableCell>
-                                    <TableCell><div>{row.contact_No}</div></TableCell>
-                                    <TableCell><div>{row.email}</div></TableCell>
-                                    <TableCell><div>{row.description}</div></TableCell>
-                                    <TableCell><div>{row.joinDate}</div></TableCell>
+                                    <TableCell><div>{row.com_contact_no}</div></TableCell>
+                                    <TableCell><div>{row.com_email}</div></TableCell>
+                                    <TableCell><div>{row.com_description}</div></TableCell>
+                                    <TableCell><div>{row.com_joindate}</div></TableCell>
                                     <TableCell>
                                         <Button 
                                             variant="contained" 
                                             size="small" 
-                                            onClick={() => openModal('view', row.uid)}
+                                            onClick={() => openModal('view', row)}
                                         >
                                             View
-                                            </Button>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -149,8 +142,7 @@ export default function Company() {
                     </Table>
                 </TableContainer>
 
-                <Pagination className="pagination" count={pageCount} onChange={handlePagi} color="primary" />
-                {/* 페이지네이션 직접 구현해야될듯 */}
+                <Pagination className="pagination" count={maxPage} onChange={handlePagi} color="primary" />
                 
             </div>
 
@@ -162,8 +154,7 @@ export default function Company() {
                 aria-describedby="modal-modal-description"
             >
                 <>
-                    {selectModal(modalPage, modalNum)}
-
+                    {selectModal(modalState, modalRow)}
                 </>
             </Modal>
 
