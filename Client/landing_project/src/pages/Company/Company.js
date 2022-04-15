@@ -14,7 +14,7 @@ import Button from "@mui/material/Button";
 import {Box, IconButton, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
 
 import ClearIcon from '@mui/icons-material/Clear';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+
 
 import AddCompany from './AddCompany';
 import EditCompany from './EditCompany';
@@ -61,6 +61,7 @@ export default function Company() {
                 key = {row.uid}
                 row = {row}
                 setModalState = {setModalState}
+                closeModal = {closeModal}
             />;
         } else if (state === 'edit') {
             return <EditCompany
@@ -150,76 +151,14 @@ export default function Company() {
                 className="modal"
                 open={modalOpen}
                 onClose={closeModal}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
             >
+
                 <>
-                    {selectModal(modalState, modalRow)}
+
+                        {selectModal(modalState, modalRow)}
+
                 </>
             </Modal>
-
-
-
-
-{/* 
-            <AddCompany />
-            <ViewCompany />
-            <EditCompany />
-             */}
-
-
-            {/* 모달별로 분리하기 */}
-
-
-            {/* <Modal
-                className="modal"
-                open={open}
-                onClose={closeModal}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <div className="modalContainer">
-                    <div className="btnContainer">
-                        <div className='deleteBtn'>
-                            <Tooltip title="Delete">
-                                <IconButton aria-label="close" className="iconBtn" onClick={() => console.log("delete")}>
-                                    <DeleteForeverIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </div>
-                        <div className='closeBtn'>
-                            <Tooltip title="Close">
-                                <IconButton aria-label="close" className="iconBtn" onClick={closeModal}>
-                                    <ClearIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </div>
-                    </div>
-                    
-                    {edit ? (
-                        <>
-
-                        </>
-                    ) : (
-                        <>
-
-                        </>
-                    )}
-
-                </div>
-            </Modal> */}
-
-
-
-
-
-            {/* <Modal
-                className="modal"
-                open={open}
-                onClose={closeModal}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            ></Modal> */}
         </>
     )
 }

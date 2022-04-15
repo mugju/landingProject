@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Box, IconButton, Button, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 export default function EditCompany({ row, closeModal }) {
     const clickSave = () => {
@@ -15,6 +16,11 @@ export default function EditCompany({ row, closeModal }) {
     }
     return (
         <>
+                            <Tooltip title="Delete">
+                            <IconButton aria-label="close" className="iconBtn" onClick={() => console.log("delete")}>
+                                <DeleteForeverIcon />
+                            </IconButton>
+                    </Tooltip>
             <div className="modalInnerContainer">
                 <div>Name</div>
                 <div>:</div>

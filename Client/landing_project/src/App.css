@@ -32,89 +32,54 @@
 
 
 
-
-
-
-
-/* 밑에 정리하기 */
-
-
 .modal{
   display: flex;
   justify-content: center;
   align-items: center;
-  /* width: 700px; */
-  /* background-color: aliceblue; */
-
 }
 
 .modalContainer{
-  /* text-align: right; */
-  background-color: lightgray;
-  /* padding: 10px 20px 20px 20px; */
-  /*height: 100%;*/
-  width: 600px;
+  background-color: #d9d9d9;
+  padding: 10px 20px 10px 20px;
+  border-radius: 5px;
 }
 
-.btnContainer{
-  display: grid;
-  grid-template-columns: 1fr 1fr ;
-}
-
-.closeBtn{
+.closeButton{
   text-align: right;
+  padding-bottom: 10px;
 }
 
-.iconBtn{
-  background-color: red;
-  /* text-align: center; */
-  /*display: flex;*/
-  /*align-items: center;*/
-  /*width: 300px;*/
+.editButton{
+  text-align: right;
+  padding-top: 10px;
 }
-
 
 .modalInnerContainer{
   background-color: #FFFFFF;
-  display: grid;
-  grid-template-columns: 100px 10px 1fr;
-  gap: 30px;
   padding: 10px;
+  width: 700px;
+  border-radius: 5px;
 }
 
-
-/* .cell{
-  
-  background-color: aqua;
-  
-  width: 100px;
-  height: 100px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-} */
-
-.editBtn, .saveBtn{
-  text-align: right;
+.modalInnerContainer > div:nth-child(2n+1){
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-row-gap: 30px;
+  padding: 10px;
+  /* border: 1px solid #dfdfdf; */
 }
 
-
-
-
-
-
-
-
-
-
-.test{
-  width: 300px;
+.modalInnerContainer > div:nth-child(2n+1) > div:nth-child(2n+1){
+  font-weight: 500;
 }
 
-.rowContainer{
-  background-color: red;
-  width: 300px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  
+.modalInnerTitle{
+  font-size: x-large;
+  font-weight: 500;
+  padding: 20px 10px;
+}
+
+.modalDescription{
+  overflow: scroll;
+  height: 200px;
 }
