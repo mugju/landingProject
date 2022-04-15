@@ -104,6 +104,16 @@ def pw_set(request):
                         content_type=u"application/json; charset=utf-8",
                         status=200)
 
+def delete_user(request,user_uid): # 슈퍼유저 혹은 본인이어야 회원 탈퇴 가능
+    user_uid_s = request.session["user_uid"]
+    user = User.objects.get(user_uid = user_uid_s)
+
+    if user.is_superuser == 1 or user.user_uid == user_uid:
+        delete_user = User.objects.get(user_uid = user_uid)
+        delete_user.delete()
+        return {"message": "유저정보 삭제"}
+    else:
+        return {"message"  : "삭제 권한이 없는 유저입니다."}
 
 def edit_user(request,user_uid):
     if request.method == 'PATCH':
@@ -121,13 +131,16 @@ def edit_user(request,user_uid):
         except:
             output = {"message": "세션내 유저정보가 없습니다."}
 
-        return HttpResponse(json.dumps(output, ensure_ascii=False),
+    elif request.method=='DELETE':
+        output = delete_user(request,user_uid)
+
+    else :
+        output = {"message": "잘못된 접근 ."}
+
+    return HttpResponse(json.dumps(output, ensure_ascii=False),
                             content_type=u"application/json; charset=utf-8",
                             status=200)
 
-
-def delete_user(request):
-    return "ok"
 
 
 def signout(request):
