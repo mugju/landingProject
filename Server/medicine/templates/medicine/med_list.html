@@ -1,0 +1,16 @@
+{% if medicine_list %}
+<ul>
+    {% for medicine in medicine_list %}
+    <li><a href="/medicine/{{ medicine.med_uid }}/">{{ medicine.med_name }}</a></li>
+    {% endfor %}
+</ul>
+<ul>
+    제조사 리스트
+    {% for company in company_list %}
+    <li>{{company.med_company}}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>약이 없습니다.</p>
+{% endif %}
+약추가
