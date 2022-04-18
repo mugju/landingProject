@@ -1,7 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib import auth
 from django.contrib.auth import authenticate
-from django.contrib.auth import update_session_auth_hash
 import json
 from .models import User
 
@@ -10,7 +9,7 @@ from django.http import HttpResponse
 
 # ==============로그인 함수=================
 def signin(request):
-    if request.method == "POST":
+    if request.method == "POST":    # 정상적인 접근
         user_data = json.loads(request.body)  # JSON data parsing / 여기에선 로그인 정보.
         user_email = user_data["user_email"]
         user_password = user_data["user_pw"]
@@ -18,15 +17,19 @@ def signin(request):
         user = authenticate(request, password=user_password, username=user_email)  # 유저 인증과정
 
         if user is None:  # 회원정보 없는 경우.
-            result = "회원정보 없음."
-            print(user)
+            return HttpResponse(json.dumps({"message" : "Bad request" }),
+                                content_type=u"application/json; charset=utf-8",
+                                status=200)
         else:
             auth.login(request, user)
-            result = "ok"
             request.session['user_uid'] = user.user_uid  # 세션을 통해 uid 넘겨줌
-        output = {
-            "user_uid": request.session.get('user_uid'),
-            "message": result
+
+            # user_info = User.objects.get(user_uid = request.session.get('user_uid'))
+            user_info = get_object_or_404(User, user_uid = request.session.get('user_uid') )
+        output = {      # 여기 값이 달라져야함.
+            "user_uid": user_info.user_uid,
+            "user_storename": user_info.user_storename,
+            # API대로 추가 정보 넘겨야 함.
         }
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
@@ -46,13 +49,13 @@ def signup(request):
                 user_storename=user_data["user_storename"]
             )
             auth.login(request, user)
-            output = {"message": "장고 기본 테이블에 회원가입 진행."}
+            output = {"message": "ok"}
 
-        else:
-            output = {"message": "비밀번호 확인 실패."}
+        else:   # 비밀 번호가 같지 않은 경우.
+            output = {"message": "Password authorization failed"}
 
-    else:  # post 이외 방식
-        output = {"message": "잘못된 접근."}
+    else:  # post 이외 방식 으로 접근 한 경우.
+        output = {"message": "Bad request"}
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
@@ -64,88 +67,89 @@ def pw_find(request):
     if request.method == 'POST':
         user_data = json.loads(request.body)
 
-        try:  # 입력정보 기반 db에서 회원정보 탐색.
-            user = User.objects.get(user_email=user_data["user_email"])
-            print(user.user_storename)
-            if user.user_storename == user_data["user_storename"]:
-                request.session['user_uid'] = user.user_uid
-                output = {
-                    "message": "회원정보 일치, 비밀번호 리셋으로 리다이렉트",
-                    "user_uid": request.session["user_uid"]
-                }
+        # 입력정보 기반 db에서 회원정보 탐색.
+        user = get_object_or_404(User, user_email = user_data["user_email"] )
 
-            else:
-                output = {"message": "회원정보 불일치, 얼럿메시지 발행"}
-        except:
-            output = {"message": "해당 회원정보 없음.!!"}
+        if user.user_storename == user_data["user_storename"]:
+            request.session['user_uid'] = user.user_uid
+            output = {
+                "message": "ok",
+                # "user_uid": request.session["user_uid"]
+            }
 
-        return HttpResponse(json.dumps(output, ensure_ascii=False),
-                            content_type=u"application/json; charset=utf-8",
-                            status=200)
+        else:
+            output = {"message": "Incorrect user storename"}
+
+    else:
+        output = {"message": "Bad request"}
+
+    return HttpResponse(json.dumps(output, ensure_ascii=False),
+                        content_type=u"application/json; charset=utf-8",
+                        status=200)
 
 
 def pw_set(request):
     if request.method == 'POST':
         try:
             user_uid = request.session["user_uid"]
-            print(user_uid)
-            output = {"message": "회원정보 있음."}
-            user = User.objects.get(user_uid=user_uid)
+            user = get_object_or_404(User, user_uid = user_uid)
             new_pw = json.loads(request.body)["user_new_pw"]
-            print("new pw : {}".format(new_pw))
+
             user.set_password(new_pw)
             user.save()
-
-
+            output = {"message": "Ok"}
         except:
-            output = {"message": "회원정보 없음, 얼럿메시지 발행"}
+            output = {"message": "Bad request"}
 
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
+    return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
                         status=200)
 
-def delete_user(request,user_uid): # 슈퍼유저 혹은 본인이어야 회원 탈퇴 가능
-    user_uid_s = request.session["user_uid"]
-    user = User.objects.get(user_uid = user_uid_s)
 
-    if user.is_superuser == 1 or user.user_uid == user_uid:
+def delete_user(request,user_uid): # 슈퍼유저 혹은 본인이어야 회원 탈퇴 가능
+    session_uid = request.session["user_uid"]
+    user = get_object_or_404(User, user_uid=session_uid)
+
+    if user.is_superuser == 1 or user.user_uid == user_uid:     # 어드민 이거나, 본인일 경우에 삭제 가능.
         delete_user = User.objects.get(user_uid = user_uid)
         delete_user.delete()
-        return {"message": "유저정보 삭제"}
+        return {"message": "Ok"}
     else:
-        return {"message"  : "삭제 권한이 없는 유저입니다."}
+        return {"message"  : "Permission rejected"}
+
 
 def edit_user(request,user_uid):
     if request.method == 'PATCH':
         try:
-            user_uid_s = request.session["user_uid"]
-            if user_uid == user_uid_s: # 세션 유저와 url상 유저가 동일.
-                user = User.objects.get(user_uid=user_uid)
+            session_uid = request.session["user_uid"]
+            if user_uid == session_uid: # 세션 유저와 url상 유저가 동일.
+                user = get_object_or_404(User, user_uid=user_uid)
                 user_data = json.loads(request.body)
+
                 user.user_email = user_data["user_email"]
                 user.user_storename = user_data["user_storename"]
                 user.save()
-                output = {"message": "유저정보 수정"}
+                output = {"message": "Ok"}
             else:
-                output = {"message": "세션 유저와 수정대상 유저가 동일하지 않습니다."}
+                output = {"message": "Permission denied"}
         except:
-            output = {"message": "세션내 유저정보가 없습니다."}
+            output = {"message": "Bad request"}
 
     elif request.method=='DELETE':
         output = delete_user(request,user_uid)
 
     else :
-        output = {"message": "잘못된 접근 ."}
+        output = {"message": "Bad request"}
 
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                            content_type=u"application/json; charset=utf-8",
-                            status=200)
-
-
-
-def signout(request):
-    auth.logout(request)
-    output = {"message": "로그아웃"}
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
                         status=200)
+
+
+def logout(request):
+    auth.logout(request)
+    output = {"message": "Ok"}
+    return HttpResponse(json.dumps(output, ensure_ascii=False),
+                        content_type=u"application/json; charset=utf-8",
+                        status=200)
+
