@@ -3,7 +3,6 @@ from django.http import HttpResponse, HttpResponseBadRequest , JsonResponse
 from django.db.models import Count , OuterRef , Subquery
 import json
 
-
 from .models import Company
 from bank.models import Bank
 from user.models import User
@@ -12,22 +11,15 @@ def checkAuth(headers):
     try:
         headerAuth = headers['auth']
         userAuth = get_object_or_404( User, user_session = headerAuth)
+        return userAuth
     except User.DoesNotExist:
         return JsonResponse({'message': 'unauthorized users'})
-    finally:
-        return userAuth 
 
 
 def companyMain(request):
     if request.method == 'GET': #/company 
+        userAuth = checkAuth(request.headers)
         try:
-            headerAuth = request.headers['auth']
-            userAuth = get_object_or_404( User, user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
-
-        try:
-            # userAuth = checkAuth(request.headers)
             page = request.GET['page']
             if page != 1:
                 start = ((int(page) * 10) - 10)
@@ -42,6 +34,7 @@ def companyMain(request):
             for i in bankele:
                     bankList.append({i['bank_uid'] : i['bank_name']})
             result = []
+            #select_related를 사용하면 아래와 같이 json을 변경해주어야 한다. 
             for e in companyele:
                     resultele = {}
                     resultele['com_uid'] = e.com_uid
@@ -53,9 +46,9 @@ def companyMain(request):
                     resultele['com_description'] = e.com_description
                     resultele['com_account_no'] = e.com_account_no
                     resultele['bank_name'] = e.bank_uid.bank_name
-                    target = e.com_joindate.strftime('%Y-%m-%d')
-                    resultele['com_joindate'] = target
-                    result.append(resultele)
+                    resultele['com_joindate'] = e.com_joindate.strftime('%Y-%m-%d')
+            
+            result.append(resultele)
 
             return JsonResponse(
                     {'companyallcount' : allcount,'company_list': result , 'bank_list': bankList}
@@ -66,30 +59,26 @@ def companyMain(request):
             return HttpResponseBadRequest(json.dumps('Bad request'))
        
     if request.method == 'POST': #/company
-        try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+        userAuth = checkAuth(request.headers)
 
         try:
-            inputdata = json.loads(request.body.decode('utf-8'))
-            bank = Bank.objects.get(bank_uid = inputdata['bank_uid'])
+            inputData = json.loads(request.body.decode('utf-8'))
+            bank = Bank.objects.get(bank_uid = inputData['bank_uid'])
 
             Company.objects.create(
-                com_name = inputdata['com_name'],
-                com_licence_no = inputdata['com_licence_no'],
-                com_address = inputdata['com_address'],
-                com_contact_no = inputdata['com_contact_no'],
-                com_email = inputdata['com_email'],
-                com_description = inputdata['com_description'],
-                com_joindate = inputdata['com_joindate'],
-                com_account_no = inputdata['com_account_no'],
+                com_name = inputData['com_name'],
+                com_licence_no = inputData['com_licence_no'],
+                com_address = inputData['com_address'],
+                com_contact_no = inputData['com_contact_no'],
+                com_email = inputData['com_email'],
+                com_description = inputData['com_description'],
+                com_joindate = inputData['com_joindate'],
+                com_account_no = inputData['com_account_no'],
                 bank_uid = bank,
-                user_uid = userInfo
+                user_uid = userAuth
             )
             return JsonResponse(
-                    inputdata
+                    inputData
                     , safe= False
                     , json_dumps_params={'ensure_ascii': False} 
                     , status = 200 
@@ -127,12 +116,7 @@ def companyDetail(request, uid):
     #         return HttpResponseBadRequest(json.dumps('Bad request'))
 
     if request.method == 'PATCH': #company/{uid}
-
-        try:
-            headerAuth = request.headers['auth']
-            userAuth = get_object_or_404( User ,user_session = headerAuth)
-        except:
-            return HttpResponse(('Bad request'), status = 400)
+        userAuth = checkAuth(request.headers)
 
         try:
             targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid) 
@@ -156,14 +140,10 @@ def companyDetail(request, uid):
             return HttpResponse(('Bad request'), status = 400)
 
     elif request.method == 'DELETE': #company/{uid}
-        try:
-            headerAuth = request.headers['auth']
-            userAuth = get_object_or_404( User ,user_session = headerAuth)
-        except:
-            return HttpResponse(('Bad request'), status = 400)
+        userAuth = checkAuth(request.headers)
         
         try:
-            targetInfo = Company.objects.get(com_uid = uid, user_uid = 5) #userAuth.uid가 들어가야함    
+            targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid)
             targetInfo.delete()
             return JsonResponse({'message': 'Ok'}, status = 200)
 

@@ -6,6 +6,7 @@ from django.utils.dateformat import DateFormat
 import json
 from datetime import datetime 
 
+from company.views import checkAuth
 from bill.models import Bill, Bill_detail
 from medicine.models import Medicine
 from user.models import User
@@ -13,11 +14,7 @@ from user.models import User
 
 def makeBill(request):
     if request.method == 'GET': 
-        try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('unauthorized users'))
+        userAuth = checkAuth(request.headers)
         try:
             medList = list(Medicine.objects.all()\
                 .values('med_uid', 'med_name', 'med_sellprice'))
@@ -26,11 +23,7 @@ def makeBill(request):
             return HttpResponseBadRequest(json.dumps('Bad request'))
 
     elif request.method == 'POST':
-        try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('unauthorized users'))
+        userAuth = checkAuth(request.headers)
         try:
             inputdata = json.loads(request.body.decode('utf-8'))
 
@@ -53,9 +46,9 @@ def makeBill(request):
                 totalSell += amountList[i['med_name']] * i['med_sellprice']        
             
             datenow = DateFormat(datetime.now()).format('Y-m-d')
-            print(datenow)
+
             inputBill = Bill.objects.create(
-                user_uid = userInfo,
+                user_uid = userAuth,
                 bill_customer_name = inputdata['bill_customer_name'],
                 bill_address = inputdata['bill_address'],
                 bill_phone = inputdata['bill_phone'],

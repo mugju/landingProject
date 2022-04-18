@@ -3,30 +3,24 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest , JsonResponse
 import json
 
+from company.views import checkAuth
 from user.models import User
 from request.models import Cus_req
 
 
 def postReq(request):
     if request.method == 'GET':
+        userAuth = checkAuth(request.headers)
+
         try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('unauthorized users'))
-        try:
-            targetdata = list(Cus_req.objects.filter(user_uid = userInfo.user_uid)\
+            targetdata = list(Cus_req.objects.filter(user_uid = userAuth.user_uid)\
                 .values('req_uid', 'req_name','req_phone', 'req_med_detail' , 'req_joindate' , 'req_status'))
             return JsonResponse(targetdata,safe=False, status = 200)
         except:
             return HttpResponseBadRequest(json.dumps('Bad request'))
 
     if request.method == 'POST':
-        try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('unauthorized users'))
+        userAuth = checkAuth(request.headers)
         try:
             inputdata = json.loads(request.body.decode('utf-8'))
             
@@ -36,7 +30,7 @@ def postReq(request):
                 req_med_detail = inputdata['req_detail'],
                 req_joindate = inputdata['req_joindate'],
                 req_status = False,
-                user_uid = userInfo
+                user_uid = userAuth
             )
 
             return JsonResponse({'message' : 'Ok'},safe=False, status = 200)
@@ -45,14 +39,9 @@ def postReq(request):
 
 def fixReq(request, uid):
     if request.method == 'PATCH': 
+        userAuth = checkAuth(request.headers)
         try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('unauthorized users'))
-            
-        try:
-            targetInfo = Cus_req.objects.get(user_uid = userInfo.user_uid , req_uid = uid)
+            targetInfo = Cus_req.objects.get(user_uid = userAuth.user_uid , req_uid = uid)
             targetStatus = False
             targetStatus = True if targetInfo.req_status == False else  targetStatus
             targetInfo.req_status = targetStatus
@@ -62,11 +51,7 @@ def fixReq(request, uid):
             return HttpResponseBadRequest(json.dumps('Bad request'))
 
     elif request.method == 'DELETE':
-        try:
-            headerAuth = request.headers['auth']
-            userInfo = get_object_or_404( User , user_session = headerAuth)
-        except:
-            return HttpResponseBadRequest(json.dumps('unauthorized users'))
+        userAuth = checkAuth(request.headers)
         try:
             targetInfo = Cus_req.objects.get(req_uid = uid, user_uid = 3) #userAuth.uid가 들어가야함    
             targetInfo.delete()
