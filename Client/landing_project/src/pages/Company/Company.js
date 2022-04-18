@@ -55,17 +55,17 @@ export default function Company() {
 
     const selectModal = (state, row) => {
         if (state === 'add') {
-            return <div>add</div>;
+            return <AddCompany
+                closeModal = {closeModal}
+            />;
         } else if (state === 'view') {
-            return <ViewCompany 
-                key = {row.uid}
+            return <ViewCompany
                 row = {row}
                 setModalState = {setModalState}
                 closeModal = {closeModal}
             />;
         } else if (state === 'edit') {
             return <EditCompany
-                key = {row.uid}
                 row = {row}
                 closeModal = {closeModal}
             />;
@@ -122,8 +122,8 @@ export default function Company() {
                                 >
                                     <TableCell component="th" scope="row">{row.com_uid}</TableCell>
                                     <TableCell><div>{row.com_name}</div></TableCell>
+                                    <TableCell><div>{row.com_licence_no}</div></TableCell>
                                     <TableCell><div>{row.com_address}</div></TableCell>
-                                    <TableCell><div>{row.address}</div></TableCell>
                                     <TableCell><div>{row.com_contact_no}</div></TableCell>
                                     <TableCell><div>{row.com_email}</div></TableCell>
                                     <TableCell><div>{row.com_description}</div></TableCell>

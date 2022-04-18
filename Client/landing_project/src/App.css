@@ -49,9 +49,13 @@
   padding-bottom: 10px;
 }
 
-.editButton{
+.editButton, .saveButton{
   text-align: right;
   padding-top: 10px;
+}
+
+.saveButton > button:nth-child(2){
+  margin-left: 10px;
 }
 
 .modalInnerContainer{
