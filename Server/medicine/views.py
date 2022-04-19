@@ -1,55 +1,94 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.db.models import Count
+from django.http import HttpResponse,HttpResponseBadRequest , JsonResponse
+from django.db.models import Count,Prefetch
 from django.core.paginator import Paginator
-
-MAX_LIST_CNT = 10
-MAX_PAGE_CNT = 5
 
 import json
 from .models import Medicine , Med_salt
 from user.models import User
+from company.models import Company
+# import time
+#세션에 담긴 uid가 User에 존재하는지 확인
+def medSession(request):
+    try:
+        headerAuth = request.session['auth']
+        print('user uid 확인', headerAuth)
+        userAuth = get_object_or_404(User, user_uid = headerAuth)
+    except:
+        return HttpResponse(json.dumps('Bad request'))
+    finally:
+        return userAuth
 
 def med_index(request):
-    user_uid=141
+    #session 사용자 확인 불러야함
     if request.method == 'GET':
-#         page = request.get('page',1)
-        medicine_list = Medicine.objects.filter(user_uid=user_uid)#uer_id session에서 받아오기
-#         paginator = Paginator(medicine_list, MAX_LIST_CNT)
-#         page_obj = paginator.get_page(page) # paginator.count = 전체 게시물 개수
-        company_list = Medicine.objects.filter(user_uid=user_uid).values('med_company') # 제조사 정보만 받아오기
-        medicineallcount = Medicine.objects.filter(user_uid=user_uid).count()
-        context = {'medicine_list': medicine_list, 'company_list': company_list, 'medicineallcount':medicineallcount}
-        return render(request, 'medicine/med_list.html',context)
+        user_uid=141 #테스트를 위해 임의로 해놓은것
+        try:
+#         아래 주석은 페이징 할때 쓰일 것
+#             page = request.GET['page']
+#             if page !=1 :
+#                 start = ((int(page)*10)-10)
+#                 end = (int(page)*10)
+#             medicine_list = list(Medicine.objects.prefetch_related(Prefetch('med_uid', to_attr='med_salt.set()'))
+#                                         .filter(user_uid=request.session['auth']))[start:end]
+            medicineLi = Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set')
+            medicineAllCount = medicineLi.count()#약의 개수 count
+            companyLi = Company.objects.filter(user_uid=user_uid) #user의 거래처 uid, 이름 list
+            company_list = []
+            for data in companyLi:
+                company_list.append({data['com_uid'] : data['com_name']})
+
+            medicine_list = []
+            for data in medicineLi:
+                new = {}
+                new['med_uid'] = data.med_uid
+                new['med_name'] = data.med_name
+                new['med_type'] = data.med_type
+                new['med_buyprice'] = data.med_buyprice
+                new['med_sellprice'] = data.med_sellprice
+                new['med_csgt'] = data.med_cgst
+                new['med_sgst'] = data.med_sgst
+                new['med_expire'] = str(data.med_expire)
+                new['med_mfg'] = str(data.med_mfg)
+                new['med_desc'] = data.med_desc
+                new['med_instock'] = data.med_instock
+                new['med_company'] = data.med_company
+                new['med_salt'] = list(data.med_salt_set.values())
+                medicine_list.append(new)
+            context = {'medicine_list': medicine_list, 'company_list': company_list, 'medicineallcount':medicineAllCount}
+            return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
+        except:
+            return HttpResponseBadRequest(json.dumps('Bad request'))
     else:#POST 방식일때
-        message = med_insert(request, user_uid)
-        result = {"message" : message}
-        return render(request,'medicine/med_list.html')#  medicine add하고 어디로 보내줘야하지? get으로 다시 list 보내주어야하는것인가?
-
-
-
-
+        try:
+            message = med_insert(request, user_uid)
+            result = {"message" : message}
+            return JsonResponse(result, json_dumps_params={'ensure_ascii': False} , status = 200)#  medicine add하고 어디로 보내줘야하지? get으로 다시 list 보내주어야하는것인가?
+        except:
+            return HttpResponseBadRequest(json.dumps('Bad request'))
 
 def med_detail(request, med_uid):
-    if request.method == 'GET':
-        medicine = get_object_or_404(Medicine, pk=med_uid) # med_uid가 uid인 정보 가져오기
-        med_salt_list = Med_salt.objects.filter(med_uid=med_uid) #med_uid가 같은 med_salt만 select해오기
-        context ={'medicine': medicine, 'med_salt_list': med_salt_list}
-        return render(request, 'medicine/med_detail.html',context)
-
+    #사용자 아이디 확인
     if request.method == 'PATCH':
-        #med_detail update
-        edit_med_detail(request, med_uid)
-        #salt_detail update, insert, delete
-        medicine = get_object_or_404(Medicine, pk=med_uid) # med_uid가 uid인 정보 가져오기
-        med_salt_list = Med_salt.objects.filter(med_uid=med_uid) #med_uid가 같은 med_salt만 select해오기
-        context ={'medicine': medicine, 'med_salt_list': med_salt_list}
-        return render(request, 'medicine/med_detail.html', context)
+        try:
+            #medicine 정보 수정
+            message = editMedicine(request, med_uid)
+            result = {"message": message}
+            return JsonResponse(result, json_dumps_params={'ensure_ascii': False} , status = 200)
+        except:
+            return HttpResponseBadRequest(json.dumps('Bad request'))
+    if request.method == 'DELETE':
+        try:
+            medDelDate = get_object_or_404(Medicine, med_uid=med_uid)
+            medDelDate.delete()
+            return JsonResponse({"message":"ok"}, json_dumps_params={'ensure_ascii': False} , status = 200)
+        except:
+            return HttpResponseBadRequest(json.dumps('Bad request'))
+
 #medicine insert 함수
 def med_insert(request, user_uid):
      med = json.loads(request.body) #JSON data parsing
-     make_med_uid=uid_num(2)+1
+     make_med_uid=uid_num(2)+1#유효아이디 때문에 한것
      medicine = Medicine(
                     med_uid=make_med_uid,
                     user_uid=User.objects.get(pk=user_uid),
@@ -67,10 +106,10 @@ def med_insert(request, user_uid):
                     med_company= med["med_company"],
      )
      medicine.save()
-     salt_fun(med["med_salt"],make_med_uid)
+     saltSave(med["med_salt"],make_med_uid)
      return "ok"
 #med_detail edit 함수
-def edit_med_detail(request, med_uid):
+def editMedicine(request, med_uid):
     med_edit = json.loads(request.body) #JSON data parsing
     medicine = Medicine.objects.get(med_uid=med_uid)
     medicine.med_name = med_edit["med_name"]
@@ -86,18 +125,19 @@ def edit_med_detail(request, med_uid):
     medicine.med_qty= med_edit["med_qty"]
     medicine.med_company= med_edit["med_company"]
     medicine.save()
+    #해당 med_uid의 salt를 다 지워버리자
+    saltDelete(med_uid)
     #med_salt inset, update함수
-    salt_fun(med_edit["med_salt"], med_uid)
-    #med_salt delete함수
-    slat_del(med_edit["med_salt_del"], med_uid)
+    saltSave(med_edit["med_salt"], med_uid)
+
     return "ok"
 
 #salt detail insert, update 함수
-def salt_fun(salt_arr, med_uid):
+def saltSave(salt_arr, med_uid):
     result = uid_num(1)
     i=1
     for salt in salt_arr:
-        if salt["salt_uid"]==0:#salt 추가 지금 전부다 insert if문으로 들어간다 미쳐버리겠다.
+        if salt["salt_uid"]==0:#salt insert
 
             med_salt = Med_salt(salt_uid=result+i,
                             med_uid=Medicine.objects.get(pk=med_uid),
@@ -108,7 +148,7 @@ def salt_fun(salt_arr, med_uid):
                             )
             med_salt.save()
             i=i+1
-        else: #salt edit
+        else: #salt update (edit)
             print("update if문")
             med_salt = Med_salt(salt_uid=salt["salt_uid"],
                             med_uid=Medicine.objects.get(pk=med_uid),
@@ -119,10 +159,9 @@ def salt_fun(salt_arr, med_uid):
                             )
             med_salt.save()
 
-def slat_del(del_uid, med_uid): #med_salt 삭제 함수
-    for del_date in del_uid:
-        med_salt = get_object_or_404(Med_salt, pk=del_date)
-        med_salt.delete()
+def saltDelete(del_uid): #med_salt 삭제 함수
+    med_salt = get_object_or_404(Med_salt, med_uid=del_uid) #해당하는 uid salt데이터 가져오고
+    med_salt.delete()#  전부 지워버리기
 
 def uid_num(num):
     if num==1:#med_salt uid 증가시키기
