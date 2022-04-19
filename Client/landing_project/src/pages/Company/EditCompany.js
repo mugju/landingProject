@@ -1,15 +1,61 @@
 import React, {useEffect, useState} from 'react';
-import {Box, IconButton, Button, Modal, Typography, TextField, Tooltip, Divider} from "@mui/material";
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import {Box, IconButton, Modal, Typography, TextField, Tooltip, Divider, Button, Select, FormControl, InputLabel, MenuItem} from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 
-export default function EditCompany({ row, closeModal }) {
-    const clickSave = () => {
-        // submit 함수 추가하기
-        console.log('저장');
-        closeModal();
-        // 저장되었다는 응답 받으면 배너 띄우기
+const findBankIndex = (bankName, bankList) => {
+    let index = 0;
+    bankList.map((bank, idx) => {
+        if (bankName == bank[idx + 1]){
+            index = idx;
+        }
+    })
+    return index
+}
+
+export default function EditCompany({ row, bankList, closeModal }) {
+    const [select, setSelect] = useState(findBankIndex(row.bank_name, bankList));
+    const [inputs, setInputs] = useState({
+        "com_uid": row.com_uid,
+        "com_name": row.com_name,
+        "com_licence_no": row.com_licence_no,
+        "com_address": row.com_address,
+        "com_contact_no": row.com_contact_no,
+        "com_email": row.com_email,
+        "com_description": row.com_description,
+        "com_joindate": row.com_joindate,
+        "com_account_No": row.com_account_No,
+        "bank_name": row.bank_name,
+    });
+
+    const handleSelect = (event) => {
+        const { name, value } = event.target
+        setSelect(value);
+        setInputs({
+            ...inputs,
+            [name]: bankList[value][value + 1]
+        })
+    };
+
+    const handleChange = (event) => {
+        const { id, value } = event.target
+        setInputs({
+            ...inputs,
+            [id]: value
+        })
     }
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        console.log(inputs);
+
+
+        // axios.post("http://local~~", inputs)
+        //     .then((res) => {
+        //         console.log(res);
+        //         closeModal();
+        //     })
+    };
+
     const clickDelete = () => {
         alert("test");
         // 삭제 확인창
@@ -27,73 +73,114 @@ export default function EditCompany({ row, closeModal }) {
                         </IconButton>
                     </Tooltip>
                 </div>
-                <div className="modalInnerContainer">
-                    <div>
-                        <div>Name</div>
-                        <TextField
-                            required
-                            label="Required"
-                            defaultValue={row.com_name}
-                            size="small"
-                        />
-                        <div>License No.</div>
-                        <TextField
-                            required
-                            label="Required"
-                            defaultValue={row.com_licence_no}
-                            size="small"
-                        />
-                        <div>Address</div>
-                        <TextField
-                            required
-                            label="Required"
-                            defaultValue={row.com_address}
-                            size="small"
-                        />
-                        <div>Contact No.</div>
-                        <TextField
-                            required
-                            label="Required"
-                            defaultValue={row.com_contact_no}
-                            size="small"
-                        />
-                        <div>Email</div>
-                        <TextField
-                            required
-                            label="Required"
-                            defaultValue={row.com_email}
-                            size="small"
-                        />
-                        <div>Description</div>
-                        <TextField
-                            required
-                            multiline
-                            rows={5}
-                            label="Required"
-                            defaultValue={row.com_description}
-                            size="small"
-                        />
+                <form onSubmit={handleSubmit}>
+                    <div className="modalInnerContainer">
+                        <div>
+                            <div>Name</div>
+                            <TextField
+                                id="com_name"
+                                required
+                                label="Required"
+                                defaultValue={row.com_name}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                            <div>License No.</div>
+                            <TextField
+                                id="com_licence_no"
+                                required
+                                label="Required"
+                                defaultValue={row.com_licence_no}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                            <div>Address</div>
+                            <TextField
+                                id="com_address"
+                                required
+                                label="Required"
+                                defaultValue={row.com_address}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                            <div>Contact No.</div>
+                            <TextField
+                                id="com_contact_no"
+                                required
+                                label="Required"
+                                defaultValue={row.com_contact_no}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                            <div>Email</div>
+                            <TextField
+                                id="com_email"
+                                required
+                                label="Required"
+                                defaultValue={row.com_email}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                            <div>Description</div>
+                            <TextField
+                                id="com_description"
+                                required
+                                multiline
+                                rows={5}
+                                label="Required"
+                                defaultValue={row.com_description}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div className="modalInnerTitle">
+                            Company Bank
+                        </div>
+                        <div>
+                            <div>Account No.</div>
+                            <TextField
+                                id="com_account_no"
+                                defaultValue={row.com_account_No}
+                                size="small"
+                                onChange={handleChange}
+                            />
+                            <div>Bank Name</div>
+                            <div>
+                                <FormControl fullWidth>
+                                    <Select
+                                        name="bank_name"
+                                        value={select}
+
+                                        onChange={handleSelect}
+                                    >
+                                        {bankList.map((bank, index) => (
+                                            <MenuItem
+                                                key={index + 1}
+                                                value={index}
+                                            >
+                                                {bank[index + 1]}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </div>
+                        </div>
                     </div>
-                    <div className="modalInnerTitle">
-                        Company Bank
+                    <div className="saveButton">
+                        <Button
+                            variant="contained"
+                            onClick={() => clickDelete()}
+                        >
+                            Delete
+                        </Button>
+                        <Button
+                            variant="contained"
+                            type="submit"
+                        >
+                            Save
+                        </Button>
                     </div>
-                    <div>
-                        <div>Account No.</div>
-                        <TextField
-                            defaultValue={row.bank_name}
-                            size="small"
-                        />
-                        <div>Bank Name</div>
-                        <TextField
-                            defaultValue={row.com_account_No}
-                            size="small"
-                        />
-                    </div>
-                </div>
-                <div className="saveButton">
-                    <Button variant="contained" onClick={() => clickDelete()}>Delete</Button>
-                    <Button variant="contained" onClick={() => clickSave()}>Save</Button>
-                </div>
+                </form>
             </div>
         </>
     )

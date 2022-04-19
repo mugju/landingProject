@@ -1,40 +1,56 @@
 import React, {useEffect, useState} from 'react';
 import {Box, IconButton, Modal, Typography, TextField, Tooltip, Divider, Button, Select, FormControl, InputLabel, MenuItem} from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
-import { useFormControl } from '@mui/material/FormControl';
 
-export default function AddCompany({ closeModal, bankList }) {
-    const [select, setSelect] = useState(0);
+const generateDate = () => {
+    let today = new Date();
+    let year = today.getFullYear();
+    let month = today.getMonth() + 1;
+    let date = today.getDate();
 
-    const clickSave = () => {
-        // submit 함수 추가하기
-        console.log('저장');
-        
-        // text field 값 받아오기
+    return (year + '-' + month + '-' + date);
+}
 
-        // 값 다 받아와서 submit 하는 방식은?
+export default function AddCompany({ bankList, closeModal }) {
+    const [select, setSelect] = useState("");
+    const [inputs, setInputs] = useState({
+        "com_uid": -1,
+        "com_joinDate": generateDate(),
+        "com_account_No": "",
+        "bank_name": "",
+    });
 
-        closeModal();
-        // 저장되었다는 응답 받으면 배너 띄우기
-    }
-
-    const handleSelect = (event: SelectChangeEvent) => {
-        setSelect(event.target.value);
-        // console.log(event.target.value);
+    const handleSelect = (event) => {
+        const { name, value } = event.target
+        setSelect(value);
+        setInputs({
+            ...inputs,
+            [name]: bankList[value][value + 1]
+        })
     };
 
-    const handleChange = (event: ChangeEvent) => {
-        console.log(event.target.value);
+    const handleChange = (event) => {
+        const { id, value } = event.target
+        setInputs({
+            ...inputs,
+            [id]: value
+        })
     }
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        console.log("submit")
+        console.log(inputs);
+
+
+        // axios.post("http://local~~", inputs)
+        //     .then((res) => {
+        //         console.log(res);
+        //         closeModal();
+        //     })
     };
 
 
     return (
-
         <>
             <div className="modalContainer">
                 <div className='closeButton'>
@@ -49,6 +65,7 @@ export default function AddCompany({ closeModal, bankList }) {
                         <div>
                             <div>Name</div>
                             <TextField
+                                id="com_name"
                                 required
                                 label="Required"
                                 size="small"
@@ -56,35 +73,45 @@ export default function AddCompany({ closeModal, bankList }) {
                             />
                             <div>License No.</div>
                             <TextField
+                                id="com_licence_no"
                                 required
                                 label="Required"
                                 size="small"
+                                onChange={handleChange}
                             />
                             <div>Address</div>
                             <TextField
+                                id="com_address"
                                 required
                                 label="Required"
                                 size="small"
+                                onChange={handleChange}
                             />
                             <div>Contact No.</div>
                             <TextField
+                                id="com_contact_no"
                                 required
                                 label="Required"
                                 size="small"
+                                onChange={handleChange}
                             />
                             <div>Email</div>
                             <TextField
+                                id="com_email"
                                 required
                                 label="Required"
                                 size="small"
+                                onChange={handleChange}
                             />
                             <div>Description</div>
                             <TextField
+                                id="com_description"
                                 required
                                 multiline
                                 rows={5}
                                 label="Required"
                                 size="small"
+                                onChange={handleChange}
                             />
                         </div>
                         <div className="modalInnerTitle">
@@ -93,14 +120,18 @@ export default function AddCompany({ closeModal, bankList }) {
                         <div>
                             <div>Account No.</div>
                             <TextField
+                                id="com_account_no"
                                 size="small"
+                                onChange={handleChange}
                             />
                             <div>Bank Name</div>
 
                             <div>
                                 <FormControl fullWidth>
                                     <Select
+                                        name="bank_name"
                                         value={select}
+
                                         onChange={handleSelect}
                                     >
                                         {bankList.map((bank, index) => (
@@ -119,7 +150,12 @@ export default function AddCompany({ closeModal, bankList }) {
                         </div>
                     </div>
                     <div className="saveButton">
-                        <Button variant="contained" onClick={() => clickSave()}>Save</Button>
+                        <Button
+                            variant="contained"
+                            type="submit"
+                        >
+                            Save
+                        </Button>
                     </div>
                 </form>
             </div>
