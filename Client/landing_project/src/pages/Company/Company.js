@@ -28,6 +28,7 @@ const pageCount = 10;
 
 export default function Company() {
     const [rows, setRows] = useState([]);
+    const [bankList, setbankList] = useState([]);
     const [maxPage, setMaxPage] = useState(10);
     const [loading, setLoading] = useState(true);
 
@@ -39,6 +40,7 @@ export default function Company() {
         const response = await axios.get(URL + page);
         const resData = response.data;
         setRows(resData.company_list);
+        setbankList(resData.bank_list);
         setMaxPage(Math.ceil(resData.companyallcount / pageCount))
         setLoading(false);
     }
@@ -56,6 +58,7 @@ export default function Company() {
     const selectModal = (state, row) => {
         if (state === 'add') {
             return <AddCompany
+                bankList = {bankList}
                 closeModal = {closeModal}
             />;
         } else if (state === 'view') {
