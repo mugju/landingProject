@@ -6,7 +6,7 @@ from bank import models as BANK
 class Employee(models.Model):
     emp_uid = models.AutoField(primary_key=True)
     user_uid = models.ForeignKey(USER.User, on_delete=models.CASCADE, db_column='user_uid')
-    bank_uid = models.ForeignKey(BANK.Bank, on_delete= models.CASCADE, db_column='bank_uid')
+    bank_uid = models.ForeignKey(BANK.Bank, on_delete= models.SET_NULL, db_column='bank_uid',null=True)
     emp_name = models.CharField(max_length=15)
     emp_joindate = models.DateField()
     emp_phone = models.CharField(max_length=15)
