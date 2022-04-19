@@ -128,6 +128,7 @@ def edit_user(request,user_uid):
 
                 user.user_email = user_data["user_email"]
                 user.user_storename = user_data["user_storename"]
+                user.set_password(user_data["user_pw"])
                 user.save()
                 output = {"message": "Ok"}
             else:
