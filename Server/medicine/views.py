@@ -92,9 +92,7 @@ def med_detail(request, med_uid):
 #medicine insert 함수
 def med_insert(request, user_uid):
      med = json.loads(request.body) #JSON data parsing
-     make_med_uid=uid_num(2)+1#유효아이디 때문에 한것
      medicine = Medicine(
-                    med_uid=make_med_uid,
                     user_uid=User.objects.get(pk=user_uid),
                     med_name = med["med_name"],
                     med_type = med["med_type"],
@@ -139,11 +137,9 @@ def editMedicine(request, med_uid):
 #salt detail insert, update 함수
 def saltSave(salt_arr, med_uid):
     result = uid_num(1)
-    i=1
     for salt in salt_arr:
         if salt["salt_uid"]==0:#salt insert
-
-            med_salt = Med_salt(salt_uid=result+i,
+            med_salt = Med_salt(
                             med_uid=Medicine.objects.get(pk=med_uid),
                             salt_name=salt["salt_name"],
                             salt_qty=salt["salt_qty"],
@@ -151,7 +147,6 @@ def saltSave(salt_arr, med_uid):
                             salt_desc=salt["salt_desc"]
                             )
             med_salt.save()
-            i=i+1
         else: #salt update (edit)
             print("update if문")
             med_salt = Med_salt(salt_uid=salt["salt_uid"],
@@ -164,17 +159,9 @@ def saltSave(salt_arr, med_uid):
             med_salt.save()
 
 def saltDelete(del_uid): #med_salt 삭제 함수
+    # get은 하나만 가져온다. 그래서 그냥 filter로 가져오기
     med_salt = get_object_or_404(Med_salt, med_uid=del_uid) #해당하는 uid salt데이터 가져오고
     med_salt.delete()#  전부 지워버리기
-
-def uid_num(num):
-    if num==1:#med_salt uid 증가시키기
-        result = Med_salt.objects.all().count()
-        return result
-    if num==2:#med_uid 증가
-        result = Medicine.objects.all().count()
-        print(result,"약의 전체 개수 출력")
-        return result
 
 
 
