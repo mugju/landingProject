@@ -32,9 +32,9 @@ class Command(BaseCommand):
         )
         seeder.execute()
         print(total)
-        length = len(User.objects.all())
-        for i in range(length+1,length-total,-1):
-            user = User.objects.get(user_uid=i)
-            user.set_password("123123123")
-            user.save()
-        self.stdout.write(self.style.SUCCESS(f'{total}만큼 만들었습니다.'))
+        # length = len(User.objects.all())
+        # for i in range(length+1,length-total,-1):
+        #     user = User.objects.get(user_uid=i)
+        #     user.set_password("123123123")
+        #     user.save()
+        # self.stdout.write(self.style.SUCCESS(f'{total}만큼 만들었습니다.'))
