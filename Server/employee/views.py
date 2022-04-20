@@ -1,29 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.http import HttpResponse
-from django.http import JsonResponse
 
 import json
 from collections import OrderedDict
 from .models import Employee, Salary
 from bank.models import Bank  # 은행 uid와  이름 형태 JSON 출력을 위함.
 from user.models import User
-from django.db.models import Count
 
-# DIC 생성 함수들  models 객체 -> 딕셔너리 형태
-
-
-def sal_dic(Salary):        # 급여 json 출력
-    output = dict()
-    output["sal_uid"] = Salary.sal_uid
-    output["sal_date"] = str(Salary.sal_date)
-    output["sal_amount"] = Salary.sal_amount
-    output["sal_joindate"] = str(Salary.sal_joindate)
-
-    return output
+# DIC 생성 함수들 : models 객체 -> 딕셔너리 형태
 
 
-def emp_dic(Data):  # 근로자 JSON 출력 여기에 조인테이블 박는다.
+# 근로자 JSON 출력
+
+def emp_dic(Data):
     output = dict()
 
     output["uid"] = Data.emp_uid
@@ -40,14 +30,16 @@ def emp_dic(Data):  # 근로자 JSON 출력 여기에 조인테이블 박는다.
     for i in sal_data:      # 조인한 테이블 전처리
         i["sal_date"] = str( i["sal_date"])
         i["sal_joindate"] = str( i["sal_joindate"])
-        i["emp_uid"] = i.pop("emp_uid_id")
+        del i["emp_uid_id"]
 
     output["emp_salary"] = sal_data
 
     return output
 
 
-def bank_dic(Bank, seq):  # 은행 JSON 형태 출력
+# 은행 JSON 형태 출력
+
+def bank_dic(Bank, seq):
     output = dict()
     seq = str(seq)  # key 값
     output[seq] = Bank.bank_name
@@ -55,20 +47,15 @@ def bank_dic(Bank, seq):  # 은행 JSON 형태 출력
     return output
 
 
-
-
 # employee 생성 함수
 
 def emp_create(request):
-    if request.method=='POST':
-        # 외래키의 경우 무조건 해당 모델의 인스턴스를 집어 넣어야 하므로 임의의 값을
-        #생성해서 넣어주도록 한다.
+    if request.method == 'POST':
+
         emp_data = json.loads(request.body)  # JSON data parsing
 
         user = get_object_or_404(User, user_uid = request.session["user_uid"])
-        bank = get_object_or_404(Bank, bank_name = emp_data["emp_bankName"])
-
-
+        bank = get_object_or_404(Bank, bank_uid = emp_data["bank_uid"])
 
         employee = Employee(
             user_uid=user,
@@ -84,91 +71,105 @@ def emp_create(request):
         output = {"message": "Ok"}
     else:
         output = {"message": "Bad request"}
-    return HttpResponse(json.dumps(output),
-                        content_type=u"application/json; charset=utf-8",
-                        status=200)
+
+    return output
 
 
 def edit_employee(request,emp_uid):
     emp_data = json.loads(request.body)  # JSON data parsing
+
     print("emp_data: {}".format(emp_data))
 
-    employee = Employee.objects.get(emp_uid = emp_uid)
-    employee.emp_name = emp_data["emp_name"]
-    employee.emp_joindate = emp_data["emp_joindate"]
-    employee.emp_phone = emp_data["emp_phone"]
-    employee.emp_address = emp_data["emp_address"]
-    employee.emp_account_no = emp_data["emp_account_no"]
-    employee.save()
+    employee = get_object_or_404(Employee, emp_uid = emp_uid)
+    if employee.emp_uid == request.session['user_uid']:
+        employee.emp_name = emp_data["emp_name"]
+        employee.emp_joindate = emp_data["emp_joindate"]
+        employee.emp_phone = emp_data["emp_phone"]
+        employee.emp_address = emp_data["emp_address"]
+        employee.emp_account_no = emp_data["emp_account_no"]
+        employee.save()
 
-    Salary.objects.filter(emp_uid = emp_uid).delete()   # 먼저 기존에 있던 데이터를 싹 날려야해.
+        Salary.objects.filter(emp_uid = emp_uid).delete()   # 먼저 기존에 있던 데이터를 싹 날려야함.
 
-    bulk_salary = []
-    for ele in emp_data["emp_salary"]:
-        new_salary=Salary()
-        new_salary.sal_date = ele["sal_date"]
-        new_salary.sal_amount = ele["sal_amount"]
-        new_salary.sal_joindate = ele["sal_joindate"]
-        new_salary.emp_uid = employee
-        bulk_salary.append(new_salary)
+        bulk_salary = []        # 입력된 연봉정보 한번에 입력
+        for ele in emp_data["emp_salary"]:
+            new_salary=Salary()
+            new_salary.sal_date = ele["sal_date"]
+            new_salary.sal_amount = ele["sal_amount"]
+            new_salary.sal_joindate = ele["sal_joindate"]
+            new_salary.emp_uid = employee
+            bulk_salary.append(new_salary)
 
-    Salary.objects.bulk_create(bulk_salary)
-    return {"message":"Ok"}
+        Salary.objects.bulk_create(bulk_salary)
+        return {"message": "Ok"}
+    else:
+        return{"message": "Bad request"}
+
+
+def show_employee (request, page):
+    # 은행이름, 직원 , 직원별 급여 총 3개의 테이블을 조인
+    emp_ele = Employee.objects.select_related('bank_uid').filter(user_uid=1).prefetch_related('salary_set')
+
+    emp_temp = []  # employee dict 을 담을 배열
+
+    for i in emp_ele:
+        emp_temp.append(emp_dic(i))
+
+    output = OrderedDict()
+    output["employeeallcount"] = emp_ele.count()  # 요소 전체 갯수
+
+    try:
+        if (page - 1) * 10 > len(emp_ele):
+            return HttpResponse(json.dumps({"message": "Bad request"}),
+                                content_type=u"application/json; charset=utf-8",
+                                status=200)
+        else:
+            output["employee_list"] = emp_temp[(page - 1) * 10: (page - 1) * 10 + 10]
+
+    except Exception as e:
+        print("Exception Occured! {}".format(e))
+        output["employee_list"] = emp_temp[(page - 1) * 10:]
+
+    bank_dic_all = Bank.objects.all()  # 모든 은행정보를 받아옴.
+    bank_temp = []  # bank 정보를 담아둘 배열
+    seq = 1  # 은행 uid
+    for i in bank_dic_all:
+        bank_temp.append(bank_dic(i, seq))
+        seq = seq + 1
+    output["bank_list"] = bank_temp
+
+    return output
 
 
 def emp_index(request):
     if request.method == 'GET':  # GET 방식일 경우 딕셔너리 조작후, json 변환 시도.
-        page = int(request.GET.get('page'))
-        emp_ele = Employee.objects.select_related('bank_uid').filter(user_uid=1).prefetch_related('salary_set')#페이지 수.
-
-        emp_temp = []  # employee dict을 담을 배열
-
-        for i in emp_ele:
-            emp_temp.append(emp_dic(i))
-
-        bank_dic_all = Bank.objects.all()  # 모든 은행정보를 받아옴.
-
-        bank_temp = []  # bank 정보를 담아둘 배열
-
-        seq = 1  # 은행 uid
-        for i in bank_dic_all:
-            bank_temp.append(bank_dic(i,seq))
-            seq = seq+1
-
-        output = OrderedDict()
-        output["employeeallcount"] = len(emp_ele)
 
         try:
-            if (page - 1) * 10 > len(emp_ele):
-                return HttpResponse(json.dumps({"message" : "Bad request"}),
-                                    content_type=u"application/json; charset=utf-8",
-                                    status=200)
-            else:
-                output["employee_list"] = emp_temp[(page-1) *10 : (page-1) *10 +9 ]
-        except :
-                output["employee_list"] = emp_temp[(page - 1) * 10: ]
+            page = int(request.GET.get('page'))
+        except Exception as e:
+            print("Exception occurred : {}".format(e))      # 페이지 변수 없을 경우
+            page = 1
 
-        output["bank_list"] = bank_temp
+        result = show_employee(request, page)
 
-        result = json.dumps(output, ensure_ascii=False, indent="\t")
-        return HttpResponse(result,
-                            content_type=u"application/json; charset=utf-8",
-                            status=200)
+    elif request.method == 'POST':  # POST 방식일 경우 근로자 만들 수 있어야 함.
+        result = emp_create(request)
 
-    if request.method == 'POST':  # POST 방식일 경우 근로자 만들 수 있어야 함.
-        print("근로자 만드는 함수 돌리쟈")
-        result = emp_create(request)     # 현재 함수 탈출이 안됨
-        
-        return HttpResponse(result)
+    else:   # 잘못된 접근
+        result = {"message": "Bad request"}
+
+    return HttpResponse(json.dumps(result),
+                        content_type=u"application/json; charset=utf-8",
+                        status=200)
 
 
 def emp_detail(request, emp_uid):
 
-    if request.method =='PATCH': # 회원정보 수정할경우
+    if request.method == 'PATCH':    # 회원정보 수정할경우
         print("근로자 디테일 수정.")
         result = edit_employee(request,emp_uid)
     else:
-        result = {"message":"Bad request"}
+        result = {"message": "Bad request"}
     return HttpResponse(json.dumps(result),
                         content_type=u"application/json; charset=utf-8",
                         status=200)

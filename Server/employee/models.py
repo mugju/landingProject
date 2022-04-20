@@ -19,7 +19,7 @@ class Employee(models.Model):
 
 class Salary(models.Model):
     sal_uid = models.AutoField(primary_key = True)
-    emp_uid = models.ForeignKey(Employee, related_name='salary_set',on_delete=models.CASCADE, db_column='emp_uid')
+    emp_uid = models.ForeignKey(Employee, related_name='salary_set',on_delete=models.CASCADE, db_column='emp_uid')      # related name 옵션이 추가되었음.
     sal_date = models.DateField()
     sal_amount = models.PositiveIntegerField()
     sal_joindate = models.DateTimeField(auto_now_add=True)
