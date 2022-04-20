@@ -1,38 +1,89 @@
-.App {
-  text-align: center;
+.container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.innerContainer{
+  background-color: #d9d9d9;
+  padding: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.titleContainer{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-bottom: 10px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.titleContainer > div:nth-child(1){
+  font-weight: 500;
+  font-size: xx-large;
+}
+
+.titleContainer > div:nth-child(2){
+  text-align: right;
+}
+
+.pagination{
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  padding-top: 10px;
 }
 
-.App-link {
-  color: #61dafb;
+
+
+
+.modal{
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.modalContainer{
+  background-color: #d9d9d9;
+  padding: 10px 20px 10px 20px;
+  border-radius: 5px;
+}
+
+.closeButton{
+  text-align: right;
+  padding-bottom: 10px;
+}
+
+.editButton, .saveButton{
+  text-align: right;
+  padding-top: 10px;
+}
+
+.saveButton > button:nth-child(2){
+  margin-left: 10px;
+}
+
+.modalInnerContainer{
+  background-color: #FFFFFF;
+  padding: 10px;
+  width: 700px;
+  border-radius: 5px;
+}
+
+.modalInnerContainer > div:nth-child(2n+1){
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-row-gap: 30px;
+  padding: 10px;
+  /* border: 1px solid #dfdfdf; */
+}
+
+.modalInnerContainer > div:nth-child(2n+1) > div:nth-child(2n+1){
+  font-weight: 500;
+}
+
+.modalInnerTitle{
+  font-size: x-large;
+  font-weight: 500;
+  padding: 20px 10px;
+}
+
+.modalDescription{
+  overflow: scroll;
+  height: 200px;
 }
