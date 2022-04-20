@@ -31,8 +31,11 @@ def med_index(request):
 #                 end = (int(page)*10)
 #             medicine_list = list(Medicine.objects.prefetch_related(Prefetch('med_uid', to_attr='med_salt.set()'))
 #                                         .filter(user_uid=request.session['auth']))[start:end]
+
             medicineLi = Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set')
             medicineAllCount = medicineLi.count()#약의 개수 count
+#             medicinePage = list(medicineLi)[start:end]
+
             companyLi = Company.objects.filter(user_uid=user_uid) #user의 거래처 uid, 이름 list
             company_list = []
             for data in companyLi:
@@ -54,6 +57,7 @@ def med_index(request):
                 new['med_instock'] = data.med_instock
                 new['med_company'] = data.med_company
                 new['med_salt'] = list(data.med_salt_set.values())
+                print(data.med_salt_set.values())
                 medicine_list.append(new)
             context = {'medicine_list': medicine_list, 'company_list': company_list, 'medicineallcount':medicineAllCount}
             return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
@@ -171,34 +175,7 @@ def uid_num(num):
         result = Medicine.objects.all().count()
         print(result,"약의 전체 개수 출력")
         return result
-#     for count, data in enumerate(salt_arr):
-#         #salt_uid 여분 판단
-#         if[data[0]==0]:# 0일때 유효하이디가 없으면
-#             salt_uid_count= salt_uid_count+1 # 임시로 salt_uid 생성
-#             new = Msed_salt(
-#                 med_uid=med_uid,
-#                 salt_uid=salt_uid_count,
-#                 salt_name=data[1],
-#                 salt_qty=data[2],
-#                 salt_qty_type=data[3],
-#                 salt_desc=data[4]
-#             )
-#             creat_salt_list.append(new) #create list 만들기
-#         else: # 이미존재하는 salt 일때
-#             update = Med_salt(
-#                 med_uid=med_uid,
-#                 salt_uid=data[0],
-#                 salt_name=data[1],
-#                 salt_qty=data[2],
-#                 salt_qty_type=data[3],
-#                 salt_desc=data[4]
-#             )
-#             update_salt_list.append(update) #update list 만들기
-#     if[creat_salt_list != null]:#creat_list에 값이 존재하면
-#         Med_salt.objects.bulk_create(creat_salt_list)  # med_salt_list insert하기
-#     if[update_salt_list != null]:
-#         Med_salt.object.bulk_update(update_salt_list)  # med_salt_list update하기
-#     return redirect('<int:med_uid>/')
+
 
 
 
