@@ -1,3 +1,4 @@
+
 """
 Django settings for config project.
 
@@ -142,3 +143,4 @@ SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
 #Django Session Timeout Code
 SESSION_COOKIE_AGE = 1800   #30분 설정
 SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
+
