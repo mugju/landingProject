@@ -14,5 +14,5 @@ class Company(models.Model):
     com_contact_no = models.CharField(max_length=15)
     com_email = models.EmailField()
     com_description = models.TextField()
-    com_joindate = models.DateTimeField(auto_now_add=True)
+    com_joindate = models.DateField(auto_now_add=True)
     com_account_no = models.CharField(max_length=20)

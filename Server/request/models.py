@@ -9,5 +9,5 @@ class Cus_req(models.Model) :
     req_name = models.CharField(max_length=15  )
     req_phone = models.CharField(max_length=13)
     req_med_detail = models.TextField()
-    req_joindate = models.DateTimeField(auto_now_add=True)
+    req_joindate = models.DateField(auto_now_add=True)
     req_status = models.BooleanField(default=False)

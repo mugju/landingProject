@@ -11,7 +11,7 @@ class Bill(models.Model):
     bill_id = models.CharField(max_length=20)
     bill_total_sell = models.PositiveIntegerField()
     bill_profit = models.PositiveIntegerField()
-    bill_date = models.DateTimeField()
+    bill_date = models.DateField()
 
 class Bill_detail(models.Model):
     detail_uid = models.AutoField(primary_key=True)

@@ -21,7 +21,7 @@ class Medicine(models.Model) :
 
 class Med_salt(models.Model) :
     salt_uid = models.AutoField(primary_key=True)
-    med_uid = models.ForeignKey(Medicine, on_delete=models.CASCADE, db_column='med_uid')
+    med_uid = models.ForeignKey(Medicine, related_name="med_salt_set", on_delete=models.CASCADE, db_column='med_uid')
     salt_name = models.CharField(max_length=20)
     salt_qty = models.DecimalField(max_digits=5, decimal_places=3) #다섯자리까지, 소숫점 셋째자리까지
     salt_qty_type = models.CharField(max_length=20)
