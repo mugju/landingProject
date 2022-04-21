@@ -7,10 +7,10 @@ from .models import Company
 from bank.models import Bank
 from user.models import User
 
-def checkAuth(headers):
+def checkAuth(request):
     try:
-        headerAuth = headers['auth']
-        userAuth = get_object_or_404( User, user_session = headerAuth)
+        headerAuth = request.session['auth']
+        userAuth = get_object_or_404( User, user_uid = headerAuth)
         return userAuth
     except User.DoesNotExist:
         return JsonResponse({'message': 'unauthorized users'})
@@ -18,16 +18,17 @@ def checkAuth(headers):
 
 def companyMain(request):
     if request.method == 'GET': #/company 
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         try:
             page = request.GET['page']
             if page != 1:
                 start = ((int(page) * 10) - 10)
                 end = (int(page) * 10)
     
-            allcount = Company.objects.filter(user_uid = userAuth.user_uid).count()
             bankele = list(Bank.objects.all().values())
-            companyele = list(Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid))[start:end]
+            companylist = list(Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid))
+            allcount = companylist.count()
+            companyele = companylist[start:end]
                     # .annotate(companyallcount = Subquery(Company.objects.filter(com_uid = OuterRef('pk'))\
                     # .values('com_uid').annotate(count = Count('pk')).values('count'))))
             bankList = []
@@ -59,7 +60,7 @@ def companyMain(request):
             return HttpResponseBadRequest(json.dumps('Bad request'))
        
     if request.method == 'POST': #/company
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
 
         try:
             inputData = json.loads(request.body.decode('utf-8'))
@@ -116,7 +117,7 @@ def companyDetail(request, uid):
     #         return HttpResponseBadRequest(json.dumps('Bad request'))
 
     if request.method == 'PATCH': #company/{uid}
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
 
         try:
             targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid) 
@@ -140,7 +141,7 @@ def companyDetail(request, uid):
             return HttpResponse(('Bad request'), status = 400)
 
     elif request.method == 'DELETE': #company/{uid}
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         
         try:
             targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid)
