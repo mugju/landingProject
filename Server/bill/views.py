@@ -14,7 +14,7 @@ from user.models import User
 
 def makeBill(request):
     if request.method == 'GET': 
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         try:
             medList = list(Medicine.objects.all()\
                 .values('med_uid', 'med_name', 'med_sellprice'))
@@ -23,7 +23,7 @@ def makeBill(request):
             return HttpResponseBadRequest(json.dumps('Bad request'))
 
     elif request.method == 'POST':
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         try:
             inputdata = json.loads(request.body.decode('utf-8'))
 
