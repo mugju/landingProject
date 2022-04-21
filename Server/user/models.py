@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True,
     )
     # user_pw = models.CharField(max_length=100)
-    user_joindate = models.DateTimeField(auto_now=True)
+    user_joindate = models.DateField(auto_now=True)
     user_storename = models.CharField(max_length=20)
     user_session = models.CharField(max_length=30)
 
