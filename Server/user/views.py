@@ -22,9 +22,9 @@ def signin(request):
                                 status=200)
         else:
             auth.login(request, user)
-            request.session['user_uid'] = user.user_uid  # 세션을 통해 uid 넘겨줌
+            request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
 
-            user_info = get_object_or_404(User, user_uid = request.session.get('user_uid') )
+            user_info = get_object_or_404(User, user_uid = request.session.get('auth') )
 
         output = {      # 여기 값이 달라져야함.
             "user_uid": user_info.user_uid,
@@ -71,7 +71,7 @@ def pw_find(request):
         user = get_object_or_404(User, user_email = user_data["user_email"] )
 
         if user.user_storename == user_data["user_storename"]:
-            request.session['user_uid'] = user.user_uid
+            request.session['auth'] = user.user_uid
             output = {
                 "message": "ok",
             }
@@ -92,7 +92,7 @@ def pw_find(request):
 def pw_set(request):
     if request.method == 'POST':
         try:
-            user_uid = request.session["user_uid"]
+            user_uid = request.session["auth"]
             user = get_object_or_404(User, user_uid = user_uid)
             new_pw = json.loads(request.body)["user_new_pw"]
 
@@ -112,7 +112,7 @@ def pw_set(request):
 # 유저 삭제 함수
 
 def delete_user(request,user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
-    session_uid = request.session["user_uid"]
+    session_uid = request.session["auth"]
     user = get_object_or_404(User, user_uid=session_uid)
 
     if user.is_superuser == 1 or user.user_uid == user_uid:     # 어드민 이거나, 본인일 경우에 삭제 가능.
@@ -128,7 +128,7 @@ def delete_user(request,user_uid):  # 슈퍼 유저 혹은 본인 이어야 회�
 def edit_user(request,user_uid):
     if request.method == 'PATCH':
         try:
-            session_uid = request.session["user_uid"]
+            session_uid = request.session["auth"]
             if user_uid == session_uid:  # 세션 유저와 url 상 유저가 동일.
                 user = get_object_or_404(User, user_uid=user_uid)
                 user_data = json.loads(request.body)
