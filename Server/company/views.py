@@ -10,7 +10,6 @@ from user.models import User
 def checkAuth(request):
     try:
         headerAuth = request.session['auth']
-        print(headerAuth)
         userAuth = get_object_or_404( User, user_uid = headerAuth)
         return userAuth
     except User.DoesNotExist:
