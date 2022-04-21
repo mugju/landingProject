@@ -54,7 +54,7 @@ def emp_create(request):
 
         emp_data = json.loads(request.body)  # JSON data parsing
 
-        user = get_object_or_404(User, user_uid = request.session["user_uid"])
+        user = get_object_or_404(User, user_uid = request.session["auth"])
         bank = get_object_or_404(Bank, bank_uid = emp_data["bank_uid"])
 
         employee = Employee(
@@ -81,7 +81,7 @@ def edit_employee(request,emp_uid):
     print("emp_data: {}".format(emp_data))
 
     employee = get_object_or_404(Employee, emp_uid = emp_uid)
-    if employee.emp_uid == request.session['user_uid']:
+    if employee.emp_uid == request.session['auth']:
         employee.emp_name = emp_data["emp_name"]
         employee.emp_joindate = emp_data["emp_joindate"]
         employee.emp_phone = emp_data["emp_phone"]
