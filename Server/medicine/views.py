@@ -75,6 +75,7 @@ def med_detail(request, med_uid):
     #사용자 아이디 확인
     if request.method == 'PATCH':
         try:
+            Med_salt.objects.filter(med_uid=del_uid).delete()#해당하는 uid salt데이터 가져오고 지우기
             #medicine 정보 수정
             message = editMedicine(request, med_uid)
             result = {"message": message}
@@ -158,10 +159,7 @@ def saltSave(salt_arr, med_uid):
                             )
             med_salt.save()
 
-def saltDelete(del_uid): #med_salt 삭제 함수
-    # get은 하나만 가져온다. 그래서 그냥 filter로 가져오기
-    med_salt = get_object_or_404(Med_salt, med_uid=del_uid) #해당하는 uid salt데이터 가져오고
-    med_salt.delete()#  전부 지워버리기
+
 
 
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /Server/.env
 *.log
 *.pot
@@ -8,3 +9,17 @@ db.sqlite3
 db.sqlite3-journal
 media
 
+=======
+
+/Server/.env
+
+*.log 
+*.pot 
+*.pyc 
+__pycache__/ 
+local_settings.py 
+db.sqlite3 
+db.sqlite3-journal 
+
+media
+>>>>>>> b87c4f0e5f385d02df22b26f085054adc11efa86
