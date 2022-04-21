@@ -24,11 +24,17 @@ class Command(BaseCommand):
             total,
             {
                 "user_email" : lambda x: seeder.faker.email(),
-                "user_pw" : lambda x: seeder.faker.word(),
+                "password" : lambda x: seeder.faker.word(),
                 "user_joindate" : lambda x: seeder.faker.date(),
                 "user_storename" : lambda x: Faker("ko_KR").name(),
                 "user_session" : lambda x: seeder.faker.ipv4_private(),
             }
         )
         seeder.execute()
-        self.stdout.write(self.style.SUCCESS(f'{total}만큼 만들었습니다.'))
+        print(total)
+        # length = len(User.objects.all())
+        # for i in range(length+1,length-total,-1):
+        #     user = User.objects.get(user_uid=i)
+        #     user.set_password("123123123")
+        #     user.save()
+        # self.stdout.write(self.style.SUCCESS(f'{total}만큼 만들었습니다.'))
