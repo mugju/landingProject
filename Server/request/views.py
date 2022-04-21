@@ -10,7 +10,7 @@ from request.models import Cus_req
 
 def postReq(request):
     if request.method == 'GET':
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
 
         try:
             targetdata = list(Cus_req.objects.filter(user_uid = userAuth.user_uid)\
@@ -20,7 +20,7 @@ def postReq(request):
             return HttpResponseBadRequest(json.dumps('Bad request'))
 
     if request.method == 'POST':
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         try:
             inputdata = json.loads(request.body.decode('utf-8'))
             
@@ -39,7 +39,7 @@ def postReq(request):
 
 def fixReq(request, uid):
     if request.method == 'PATCH': 
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         try:
             targetInfo = Cus_req.objects.get(user_uid = userAuth.user_uid , req_uid = uid)
             targetStatus = False
@@ -51,7 +51,7 @@ def fixReq(request, uid):
             return HttpResponseBadRequest(json.dumps('Bad request'))
 
     elif request.method == 'DELETE':
-        userAuth = checkAuth(request.headers)
+        userAuth = checkAuth(request)
         try:
             targetInfo = Cus_req.objects.get(req_uid = uid, user_uid = 3) #userAuth.uid가 들어가야함    
             targetInfo.delete()
