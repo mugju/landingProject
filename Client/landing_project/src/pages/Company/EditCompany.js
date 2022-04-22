@@ -56,12 +56,11 @@ export default function EditCompany({ row, bankList, closeModal }) {
         //     })
     };
 
-    const clickDelete = () => {
-        alert("test");
-        // 삭제 확인창
-        // submit 함수 추가하기
+    const handleDelete = (uid) => {
+        // 확인 모달창 추가
 
-        // 삭제되었다는 응답 받으면 배너 띄우기
+        alert(uid);
+
     }
     return (
         <>
@@ -169,12 +168,14 @@ export default function EditCompany({ row, bankList, closeModal }) {
                     <div className="saveButton">
                         <Button
                             variant="contained"
-                            onClick={() => clickDelete()}
+                            color="error"
+                            onClick={() => handleDelete(row.com_uid)}
                         >
                             Delete
                         </Button>
                         <Button
                             variant="contained"
+                            color="success"
                             type="submit"
                         >
                             Save
