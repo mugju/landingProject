@@ -70,6 +70,7 @@ export default function Company() {
         } else if (state === 'edit') {
             return <EditCompany
                 row = {row}
+                bankList= {bankList}
                 closeModal = {closeModal}
             />;
         }
