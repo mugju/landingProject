@@ -4,10 +4,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 
 # Create your models here.
-class UserManager(BaseUserManager):     #슈퍼유저를 만들어줄 무언가..?
+class UserManager(BaseUserManager):   # 슈퍼유저를 만들어줄 무언가..?
     use_in_migrations = True
 
-    def create_user(self, user_email,  password, user_storename):
+    def create_user(self, user_email,  password):
 
         if not user_email:
             raise ValueError('must have user email')
@@ -16,18 +16,18 @@ class UserManager(BaseUserManager):     #슈퍼유저를 만들어줄 무언가.
 
         user = self.model(
             user_email=self.normalize_email(user_email), # 이메일 정규화
-            user_storename = user_storename
+            # user_storename = user_storename
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, user_email,  password, storename):
+    def create_superuser(self, user_email,  password):
 
         user = self.create_user(
             user_email=self.normalize_email(user_email),
             password=password,
-            storename = "슈퍼유저"
+            # user_storename = storename,
         )
         user.is_admin = True
         user.is_superuser = True
@@ -57,7 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'user_email'
     # PASSWORD_FIELD = 'user_pw'
 
-    REQUIRED_FIELDS = [] # 어드민 생성시 입력받을 값?
+    # REQUIRED_FIELDS = ["user_storename"] # 어드민 생성시 입력받을 값?
 
     def __str__(self):
         return self.user_email
