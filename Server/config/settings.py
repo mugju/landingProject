@@ -46,17 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_seed',
-    'corsheaders',
+    'django_seed'
 ]
-CORS_ORIGIN_WHITELIST = []
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = True
-
-
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -149,6 +140,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
 
 
+
+
 #Django Session Timeout Code
 SESSION_COOKIE_AGE = 1800   #30분 설정
 SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
@@ -167,14 +160,10 @@ CACHE_TTL = 15
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'LOCATION': 'redis://127.0.0.1:6379/0',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'TIMEOUT': 5,
         },
     }
 }
-
-
-# brute buster 관련
-BB_BLOCK_INTERVAL = 3
