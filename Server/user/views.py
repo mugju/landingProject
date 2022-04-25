@@ -3,11 +3,14 @@ from django.contrib import auth
 from django.contrib.auth import authenticate
 import json
 from .models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from django.http import HttpResponse
 
 
 # ==============로그인 함수=================
+@method_decorator(csrf_exempt, name = 'dispatch')
 def signin(request):
     if request.method == "POST":    # 정상적인 접근
         user_data = json.loads(request.body)  # JSON data parsing / 여기에선 로그인 정보.
@@ -15,11 +18,10 @@ def signin(request):
         user_password = user_data["user_pw"]
 
         user = authenticate(request, password=user_password, username=user_email)  # 유저 인증과정
-
         if user is None:  # 회원정보 없는 경우.
             return HttpResponse(json.dumps({"message" : "Bad request" }),
                                 content_type=u"application/json; charset=utf-8",
-                                status=200)
+                                status=404)
         else:
             auth.login(request, user)
             request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
@@ -37,6 +39,7 @@ def signin(request):
 
 
 # ===============회원가입 함수===============
+@method_decorator(csrf_exempt, name = 'dispatch')
 def signup(request):
     if request.method == 'POST':
         print("회원 가입 로직")
