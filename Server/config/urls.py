@@ -27,4 +27,3 @@ urlpatterns = [
     path('employee/', include('employee.urls')),
     path('user/', include('user.urls'))
 ]
-
