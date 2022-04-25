@@ -56,6 +56,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 
+
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -150,5 +152,5 @@ SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
 
 #Django Session Timeout Code
 SESSION_COOKIE_AGE = 1800   #30분 설정
-# SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
+SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
 

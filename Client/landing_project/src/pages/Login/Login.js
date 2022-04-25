@@ -8,12 +8,12 @@ import cookies from 'react-cookies'
 export default function Login() {
 
     const [localId, setLocalId] = useState(localStorage.getItem('userId'));
-    const [userId, setId] = useState('aaa@test.com');
+    const [userId, setId] = useState('reedphillip@example.org');
     const [remember, setRemember] = useState(false);
     const [userPw, setPw] = useState('123123');
     const [Ok, setOk] = useState(true);
     const getAuth = () => {
-        axios.post('http://127.0.0.1:8000/user/signin/',
+        axios.post('http://localhost:8000/user/signin/',
         {
             user_email: userId,
             user_pw: userPw
@@ -29,9 +29,11 @@ export default function Login() {
         })
     }
     const testAPI = () => {
-        axios.get("http://127.0.0.1:8000/company?page=1")
-            .then(res => {
-                console.log(res.data)
+        axios.get("http://localhost:8000/company?page=1",
+        { withCredentials: true }
+        ).then(res => {
+                console.log(res.data.bank_list)
+                console.log(res.data.company_list)
             })
     }
 
