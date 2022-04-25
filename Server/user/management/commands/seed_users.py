@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
 
         length = len(User.objects.all())
-        for i in range(length+1,length-total,-1):
+        for i in range(length,length-total,-1):
             user = User.objects.get(user_uid=i)
             user.set_password("123123")
             user.save()

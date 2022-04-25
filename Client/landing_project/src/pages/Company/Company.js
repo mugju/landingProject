@@ -23,7 +23,7 @@ import ViewCompany from './ViewCompany';
 import styles from './Company.module.css';
 
 
-const URL = "http://localhost:5000/company/&page=";
+const URL = "http://localhost:8000/company&page=";
 const pageCount = 10;
 
 export default function Company() {
@@ -70,6 +70,7 @@ export default function Company() {
         } else if (state === 'edit') {
             return <EditCompany
                 row = {row}
+                bankList= {bankList}
                 closeModal = {closeModal}
             />;
         }
