@@ -24,9 +24,8 @@ def companyMain(request):
             if page != 1:
                 start = ((int(page) * 10) - 10)
                 end = (int(page) * 10)
-    
             bankele = list(Bank.objects.all().values())
-            companylist = list(Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid))
+            companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
             allcount = companylist.count()
             companyele = companylist[start:end]
                     # .annotate(companyallcount = Subquery(Company.objects.filter(com_uid = OuterRef('pk'))\
