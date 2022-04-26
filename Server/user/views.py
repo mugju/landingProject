@@ -79,7 +79,6 @@ def signin(request):
 @method_decorator(csrf_exempt, name = 'dispatch')
 def signup(request):
     if request.method == 'POST':
-        print("회원 가입 로직")
         user_data = json.loads(request.body)  # JSON data parsing / 여기 에선 회원 가입 정보.
 
         if user_data["user_pw"] == user_data["user_pw_confirm"]:  # 비밀번호 확인

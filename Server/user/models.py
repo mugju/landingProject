@@ -22,12 +22,12 @@ class UserManager(BaseUserManager):   # 슈퍼유저를 만들어줄 무언가..
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, user_email,  password):
+    def create_superuser(self, user_email,  password, user_storename):
 
         user = self.create_user(
             user_email=self.normalize_email(user_email),
             password=password,
-            # user_storename = storename,
+            user_storename = user_storename,
         )
         user.is_admin = True
         user.is_superuser = True
@@ -57,7 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'user_email'
     # PASSWORD_FIELD = 'user_pw'
 
-    # REQUIRED_FIELDS = ["user_storename"] # 어드민 생성시 입력받을 값?
+    REQUIRED_FIELDS = ["user_storename"] # 어드민 생성시 입력받을 값?
 
     def __str__(self):
         return self.user_email
