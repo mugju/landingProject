@@ -7,7 +7,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,Permiss
 class UserManager(BaseUserManager):   # 슈퍼유저를 만들어줄 무언가..?
     use_in_migrations = True
 
-    def create_user(self, user_email,  password):
+    def create_user(self, user_email,  password, user_storename):
 
         if not user_email:
             raise ValueError('must have user email')
@@ -16,7 +16,7 @@ class UserManager(BaseUserManager):   # 슈퍼유저를 만들어줄 무언가..
 
         user = self.model(
             user_email=self.normalize_email(user_email), # 이메일 정규화
-            # user_storename = user_storename
+            user_storename = user_storename
         )
         user.set_password(password)
         user.save(using=self._db)

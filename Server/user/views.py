@@ -3,10 +3,49 @@ from django.contrib import auth
 from django.contrib.auth import authenticate
 import json
 from .models import User
+from bill.models import Bill
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
 from django.http import HttpResponse
+
+# 날짜 관련
+from datetime import date, timedelta, datetime
+
+def date_range(start, end):
+    start = datetime.strptime(start, "%Y-%m-%d")
+    end = datetime.strptime(end, "%Y-%m-%d")
+    dates = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end-start).days+1)]
+    return dates
+
+
+from django.db.models import Sum
+
+# ===============메인화면 관련 ======================
+
+def main_data (user_data, bill_data): # 로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋
+    output = dict()
+    output["user_uid"] = user_data[0].user_uid
+    output["user_storename"] = user_data[0].user_storename
+    output["user_email"] = user_data[0].user_email
+    output["user_totalreqs"] = user_data[0].req_set.filter(req_status=True).count()
+    output["user_completedreq"] = user_data[0].req_set.filter(req_status=True).count()
+    output["user_pendingreq"] = user_data[0].req_set.filter(req_status=False).count()
+
+    profit_arr = list()
+    sell_arr = list()
+
+    for day in date_range(str(date.today() - timedelta(days=4)), str(date.today())):
+        dic_profit = dict()
+        dic_profit[str(day)] = bill_data.filter(bill_date=day).aggregate(Sum('bill_profit'))["bill_profit__sum"]
+        profit_arr.append(dic_profit)
+        dic_sell = dict()
+        dic_sell[str(day)] = bill_data.filter(bill_date=day).aggregate(Sum('bill_total_sell'))["bill_total_sell__sum"]
+        sell_arr.append(dic_sell)
+    output['bill_profit'] = profit_arr
+    output['bill_total_sell'] = sell_arr
+
+    return output
 
 
 # ==============로그인 함수=================
@@ -22,17 +61,15 @@ def signin(request):
             return HttpResponse(json.dumps({"message" : "Bad request" }),
                                 content_type=u"application/json; charset=utf-8",
                                 status=404)
-        else:
+        else:   # 회원정보가 정상적인 경우.
             auth.login(request, user)
             request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
 
-            user_info = get_object_or_404(User, user_uid = request.session.get('auth') )
+        user_info = User.objects.filter(user_uid  = user.user_uid).prefetch_related('req_set')
 
-        output = {      # 여기 값이 달라져야함.
-            "user_uid": user_info.user_uid,
-            "user_storename": user_info.user_storename,
-            # API대로 추가 정보 넘겨야 함.
-        }
+        bill_data = Bill.objects.filter(user_uid =user.user_uid, bill_date__range=[date.today() - timedelta(days=4), date.today()])
+        output = main_data(user_info, bill_data)
+        
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
                         status=200)
@@ -52,17 +89,26 @@ def signup(request):
                 user_storename=user_data["user_storename"]
             )
             auth.login(request, user)
-            output = {"message": "ok"}
+            request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
+
+            user_info = User.objects.filter(user_uid=user.user_uid).prefetch_related('req_set')
+            bill_data = Bill.objects.filter(user_uid=user.user_uid,
+                                            bill_date__range=[date.today() - timedelta(days=4), date.today()])
+            output = main_data(user_info, bill_data)
+            CODE = 200
 
         else:   # 비밀 번호가 같지 않은 경우.
             output = {"message": "Password authorization failed"}
+            CODE = 401
 
     else:  # post 이외 방식 으로 접근 한 경우.
         output = {"message": "Bad request"}
+        CODE = 400
+
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
-                        status=200)
+                        status=CODE)
 
 
 # 패스 워드 찾기 함수 ==> 회원 정보를 찾아 json으로 ok 응답 넘김.
@@ -75,19 +121,19 @@ def pw_find(request):
 
         if user.user_storename == user_data["user_storename"]:
             request.session['auth'] = user.user_uid
-            output = {
-                "message": "ok",
-            }
+            output = {"message": "ok"}
+            CODE = 200
 
         else:
             output = {"message": "Incorrect user storename"}
+            CODE = 401
 
     else:
         output = {"message": "Bad request"}
+        CODE = 400
 
     return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json; charset=utf-8",
-                        status=200)
+                        content_type=u"application/json",status=CODE)
 
 
 # 패스 워드 재설정 ==> 유저 정보 찾은 이후에 가능함.
@@ -102,14 +148,16 @@ def pw_set(request):
             user.set_password(new_pw)
             user.save()
             output = {"message": "Ok"}
+            CODE = 200
 
         except Exception as e:
             print(e)
             output = {"message": "Bad request"}
+            CODE = 404
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
-                        status=200)
+                        status=CODE)
 
 
 # 유저 삭제 함수
@@ -121,9 +169,9 @@ def delete_user(request,user_uid):  # 슈퍼 유저 혹은 본인 이어야 회�
     if user.is_superuser == 1 or user.user_uid == user_uid:     # 어드민 이거나, 본인일 경우에 삭제 가능.
         delete_user = User.objects.get(user_uid = user_uid)
         delete_user.delete()
-        return {"message": "Ok"}
+        return {"message": "Ok"}, 200
     else:
-        return {"message" : "Permission rejected"}
+        return {"message" : "Permission rejected"} , 401
 
 
 # 유저 정보 수정
@@ -141,21 +189,23 @@ def edit_user(request,user_uid):
                 user.set_password(user_data["user_pw"])
                 user.save()
                 output = {"message": "Ok"}
+                CODE = 200
             else:
                 output = {"message": "Permission denied"}
+                CODE = 401
         except Exception as e:
             print(e)
             output = {"message": "Bad request"}
+            CODE = 400
 
     elif request.method == 'DELETE':
-        output = delete_user(request,user_uid)
-
+        output, CODE = delete_user(request,user_uid)
     else :
         output = {"message": "Bad request"}
-
+        CODE = 400
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
-                        status=200)
+                        status=CODE)
 
 
 # 로그 아웃 함수

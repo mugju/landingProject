@@ -147,10 +147,35 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
+# SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
 
 
 #Django Session Timeout Code
 SESSION_COOKIE_AGE = 1800   #30분 설정
 SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
 
+
+# redis 관련 설정
+
+#redis  session 관련.
+SESSION_ENGINE = 'redis_sessions.session'
+
+SESSION_REDIS_HOST = 'localhost'
+SESSION_REDUS_PORT = '6379'
+SESSION_REDIS_DB = 0
+
+CACHE_TTL = 15
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'TIMEOUT': 5,
+        },
+    }
+}
+
+
+# brute buster 관련
+BB_BLOCK_INTERVAL = 3
