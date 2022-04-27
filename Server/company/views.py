@@ -35,21 +35,22 @@ def companyMain(request):
 
             for i in bankele:
                     bankList.append({i['bank_uid'] : i['bank_name']})
+            print(companyele)
             result = []
             #select_related를 사용하면 아래와 같이 json을 변경해주어야 한다. 
             for e in companyele:
-                    resultele = {}
-                    resultele['com_uid'] = e.com_uid
-                    resultele['com_name'] = e.com_name
-                    resultele['com_licence_no'] = e.com_licence_no
-                    resultele['com_address'] = e.com_address
-                    resultele['com_contact_no'] = e.com_contact_no
-                    resultele['com_email'] = e.com_email
-                    resultele['com_description'] = e.com_description
-                    resultele['com_account_no'] = e.com_account_no
-                    resultele['bank_name'] = e.bank_uid.bank_name
-                    resultele['com_joindate'] = e.com_joindate.strftime('%Y-%m-%d')
-                    result.append(resultele)
+                resultele = {}
+                resultele['com_uid'] = e.com_uid
+                resultele['com_name'] = e.com_name
+                resultele['com_licence_no'] = e.com_licence_no
+                resultele['com_address'] = e.com_address
+                resultele['com_contact_no'] = e.com_contact_no
+                resultele['com_email'] = e.com_email
+                resultele['com_description'] = e.com_description
+                resultele['com_account_no'] = e.com_account_no
+                resultele['bank_name'] = e.bank_uid.bank_name
+                resultele['com_joindate'] = e.com_joindate.strftime('%Y-%m-%d')
+                result.append(resultele)
 
             return JsonResponse(
                     {'companyallcount' : allcount,'company_list': result , 'bank_list': bankList}
