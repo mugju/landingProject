@@ -7,7 +7,7 @@ import json
 from datetime import datetime 
 
 from company.views import checkAuth
-from bill.models import Bill, Bill_detail
+from bill.models import Bill
 from medicine.models import Medicine
 from user.models import User
 
