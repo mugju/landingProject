@@ -51,7 +51,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
     # 추가 컬럼입니다. 이 부분은 회의가 필요합니다..
-    login_count = models.BooleanField(default=True)
+    login_count = models.PositiveSmallIntegerField(default=0)
+    login_blocked_time = models.DateTimeField(null=True)
     is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'user_email'

@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_seed',
     'corsheaders',
-    'BruteBuster',
 ]
 CORS_ORIGIN_WHITELIST = []
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
@@ -66,7 +65,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'BruteBuster.middleware.RequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
