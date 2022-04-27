@@ -41,7 +41,8 @@ def makeBill(request):
                 i['med_profit'] = (i['med_buyprice'] - i['med_sellprice'])  
                 totalProfit += amountList[i['med_uid']] * i['med_profit']
                 totalSell += amountList[i['med_uid']] * i['med_sellprice']        
-            result = {'bill_total_sell':totalSell ,' bill_profit': totalProfit}
+            result = {'bill_total_sell':totalSell ,' bill_profit': totalProfit, 'user_uid': userAuth}
+            
             Bill.objects.update_or_create(bill_date = inputdata.joindate ,
             defaults=result)
 
