@@ -21,16 +21,18 @@ def companyMain(request):
         userAuth = checkAuth(request)
         try:
             page = request.GET['page']
-            if page != 1:
+            if page >= 1:
                 start = ((int(page) * 10) - 10)
                 end = (int(page) * 10)
+            else:
+                return HttpResponseBadRequest(json.dumps('Bad request'))
+                
             bankele = list(Bank.objects.all().values())
             companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
             allcount = companylist.count()
             companyele = companylist[start:end]
-                    # .annotate(companyallcount = Subquery(Company.objects.filter(com_uid = OuterRef('pk'))\
-                    # .values('com_uid').annotate(count = Count('pk')).values('count'))))
             bankList = []
+
             for i in bankele:
                     bankList.append({i['bank_uid'] : i['bank_name']})
             result = []
@@ -47,8 +49,7 @@ def companyMain(request):
                     resultele['com_account_no'] = e.com_account_no
                     resultele['bank_name'] = e.bank_uid.bank_name
                     resultele['com_joindate'] = e.com_joindate.strftime('%Y-%m-%d')
-            
-            result.append(resultele)
+                    result.append(resultele)
 
             return JsonResponse(
                     {'companyallcount' : allcount,'company_list': result , 'bank_list': bankList}
