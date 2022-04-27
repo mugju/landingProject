@@ -12,18 +12,20 @@ from django.http import HttpResponse
 # 날짜 관련
 from datetime import date, timedelta, datetime
 
+
 def date_range(start, end):
     start = datetime.strptime(start, "%Y-%m-%d")
     end = datetime.strptime(end, "%Y-%m-%d")
-    dates = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end-start).days+1)]
+    dates = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end - start).days + 1)]
     return dates
 
 
 from django.db.models import Sum
 
+
 # ===============메인화면 관련 ======================
 
-def main_data (user_data, bill_data): # 로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋
+def main_data(user_data, bill_data):  # 로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋
     output = dict()
     output["user_uid"] = user_data[0].user_uid
     output["user_storename"] = user_data[0].user_storename
@@ -49,34 +51,58 @@ def main_data (user_data, bill_data): # 로그인 및 회원가입시 메인화�
 
 
 # ==============로그인 함수=================
-@method_decorator(csrf_exempt, name = 'dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 def signin(request):
-    if request.method == "POST":    # 정상적인 접근
+    if request.method == "POST":  # 정상적인 접근
         user_data = json.loads(request.body)  # JSON data parsing / 여기에선 로그인 정보.
         user_email = user_data["user_email"]
         user_password = user_data["user_pw"]
 
         user = authenticate(request, password=user_password, username=user_email)  # 유저 인증과정
         if user is None:  # 회원정보 없는 경우.
-            return HttpResponse(json.dumps({"message" : "Bad request" }),
+            try:
+                ui = User.objects.get(user_email = user_email)
+                if ui.login_blocked_time > datetime.now():      # 블록된 상태인지 아닌지 확인
+                    return HttpResponse(json.dumps({"message": "user is lock ","useTime": str(ui.login_blocked_time)}),
+                                        content_type=u"application/json",
+                                        status=401)
+
+                ui.login_count = ui.login_count + 1
+                ui.save()
+
+                # 로그인 블록시간
+                if ui.login_count == 5:
+                    ui.login_blocked_time = datetime.now() + timedelta(minutes=30)
+                    ui.save()
+
+            except: pass
+            return HttpResponse(json.dumps({"message": "Bad request"}),
                                 content_type=u"application/json; charset=utf-8",
                                 status=404)
-        else:   # 회원정보가 정상적인 경우.
+        else:  # 회원정보가 정상적인 경우.
+            if user.login_blocked_time > datetime.now():
+                return HttpResponse(json.dumps({"message" : "user is lock ","useTime": str(user.login_blocked_time)}),
+                                    content_type=u"application/json; charset=utf-8",
+                                    status=401)
+
             auth.login(request, user)
+            user.login_count = 0
+            user.save()
             request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
 
-        user_info = User.objects.filter(user_uid  = user.user_uid).prefetch_related('req_set')
+        user_info = User.objects.filter(user_uid=user.user_uid).prefetch_related('req_set')
 
-        bill_data = Bill.objects.filter(user_uid =user.user_uid, bill_date__range=[date.today() - timedelta(days=4), date.today()])
+        bill_data = Bill.objects.filter(user_uid=user.user_uid,
+                                        bill_date__range=[date.today() - timedelta(days=4), date.today()])
         output = main_data(user_info, bill_data)
-        
+
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
                         status=200)
 
 
 # ===============회원가입 함수===============
-@method_decorator(csrf_exempt, name = 'dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 def signup(request):
     if request.method == 'POST':
         user_data = json.loads(request.body)  # JSON data parsing / 여기 에선 회원 가입 정보.
@@ -96,14 +122,13 @@ def signup(request):
             output = main_data(user_info, bill_data)
             CODE = 200
 
-        else:   # 비밀 번호가 같지 않은 경우.
+        else:  # 비밀 번호가 같지 않은 경우.
             output = {"message": "Password authorization failed"}
             CODE = 401
 
     else:  # post 이외 방식 으로 접근 한 경우.
         output = {"message": "Bad request"}
         CODE = 400
-
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
@@ -116,7 +141,7 @@ def pw_find(request):
         user_data = json.loads(request.body)
 
         # 입력정보 기반 db에서 회원정보 탐색.
-        user = get_object_or_404(User, user_email = user_data["user_email"] )
+        user = get_object_or_404(User, user_email=user_data["user_email"])
 
         if user.user_storename == user_data["user_storename"]:
             request.session['auth'] = user.user_uid
@@ -132,7 +157,7 @@ def pw_find(request):
         CODE = 400
 
     return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json",status=CODE)
+                        content_type=u"application/json", status=CODE)
 
 
 # 패스 워드 재설정 ==> 유저 정보 찾은 이후에 가능함.
@@ -141,7 +166,7 @@ def pw_set(request):
     if request.method == 'POST':
         try:
             user_uid = request.session["auth"]
-            user = get_object_or_404(User, user_uid = user_uid)
+            user = get_object_or_404(User, user_uid=user_uid)
             new_pw = json.loads(request.body)["user_new_pw"]
 
             user.set_password(new_pw)
@@ -161,21 +186,21 @@ def pw_set(request):
 
 # 유저 삭제 함수
 
-def delete_user(request,user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
+def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
     session_uid = request.session["auth"]
     user = get_object_or_404(User, user_uid=session_uid)
 
-    if user.is_superuser == 1 or user.user_uid == user_uid:     # 어드민 이거나, 본인일 경우에 삭제 가능.
-        delete_user = User.objects.get(user_uid = user_uid)
+    if user.is_superuser == 1 or user.user_uid == user_uid:  # 어드민 이거나, 본인일 경우에 삭제 가능.
+        delete_user = User.objects.get(user_uid=user_uid)
         delete_user.delete()
         return {"message": "Ok"}, 200
     else:
-        return {"message" : "Permission rejected"} , 401
+        return {"message": "Permission rejected"}, 401
 
 
 # 유저 정보 수정
 
-def edit_user(request,user_uid):
+def edit_user(request, user_uid):
     if request.method == 'PATCH':
         try:
             session_uid = request.session["auth"]
@@ -198,8 +223,8 @@ def edit_user(request,user_uid):
             CODE = 400
 
     elif request.method == 'DELETE':
-        output, CODE = delete_user(request,user_uid)
-    else :
+        output, CODE = delete_user(request, user_uid)
+    else:
         output = {"message": "Bad request"}
         CODE = 400
     return HttpResponse(json.dumps(output, ensure_ascii=False),
@@ -209,10 +234,9 @@ def edit_user(request,user_uid):
 
 # 로그 아웃 함수
 
-def logout(request): 
+def logout(request):
     auth.logout(request)
     output = {"message": "Ok"}
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
                         status=200)
-
