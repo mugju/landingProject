@@ -29,7 +29,7 @@ class UserManager(BaseUserManager):   # 슈퍼유저를 만들어줄 무언가..
             password=password,
             user_storename = user_storename,
         )
-        user.is_admin = True
+        # user.is_admin = True
         user.is_superuser = True
         user.save(using=self._db)
         return user
@@ -53,7 +53,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # 추가 컬럼입니다. 이 부분은 회의가 필요합니다..
     login_count = models.PositiveSmallIntegerField(default=0)
     login_blocked_time = models.DateTimeField(null=True)
-    is_admin = models.BooleanField(default=False)
+    # is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'user_email'
     # PASSWORD_FIELD = 'user_pw'
@@ -65,7 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_staff(self):
-        return self.is_admin
+        return self.is_superuser()
 
 
 

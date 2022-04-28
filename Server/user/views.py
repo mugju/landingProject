@@ -34,13 +34,14 @@ def main_data(user_data, bill_data):  # 로그인 및 회원가입시 메인화�
     output["user_completedreq"] = user_data[0].req_set.filter(req_status=True).count()
     output["user_pendingreq"] = user_data[0].req_set.filter(req_status=False).count()
 
-    profit_arr = list()
+    profit_arr = list() # json 생성용
     sell_arr = list()
 
     for day in date_range(str(date.today() - timedelta(days=4)), str(date.today())):
         dic_profit = dict()
         dic_profit[str(day)] = bill_data.filter(bill_date=day).aggregate(Sum('bill_profit'))["bill_profit__sum"]
         profit_arr.append(dic_profit)
+        
         dic_sell = dict()
         dic_sell[str(day)] = bill_data.filter(bill_date=day).aggregate(Sum('bill_total_sell'))["bill_total_sell__sum"]
         sell_arr.append(dic_sell)
@@ -63,7 +64,7 @@ def signin(request):
             try:
                 ui = User.objects.get(user_email = user_email)
                 if ui.login_blocked_time > datetime.now():      # 블록된 상태인지 아닌지 확인
-                    return HttpResponse(json.dumps({"message": "user is lock ","useTime": str(ui.login_blocked_time)}),
+                    return HttpResponse(json.dumps({"message": "user is lock","useTime": ui.login_blocked_time.strftime("%Y-%m-%d %H:%M:%S")}),
                                         content_type=u"application/json",
                                         status=401)
 
@@ -71,17 +72,19 @@ def signin(request):
                 ui.save()
 
                 # 로그인 블록시간
-                if ui.login_count == 5:
+                if (ui.login_count % 5) == 0: # 5의 배수일경우
                     ui.login_blocked_time = datetime.now() + timedelta(minutes=30)
                     ui.save()
 
-            except: pass
+            except: pass # 없는 유저 이메일일 경우 => 그냥 404 띄워버리면 된다.
+
             return HttpResponse(json.dumps({"message": "Bad request"}),
                                 content_type=u"application/json; charset=utf-8",
                                 status=404)
+
         else:  # 회원정보가 정상적인 경우.
             if user.login_blocked_time > datetime.now():
-                return HttpResponse(json.dumps({"message" : "user is lock ","useTime": str(user.login_blocked_time)}),
+                return HttpResponse(json.dumps({"message" : "user is lock","useTime": user.login_blocked_time.strftime("%Y-%m-%d %H:%M:%S")}),
                                     content_type=u"application/json; charset=utf-8",
                                     status=401)
 
