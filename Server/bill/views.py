@@ -20,7 +20,7 @@ def makeBill(request):
                 .values('med_uid', 'med_name', 'med_sellprice'))
             return JsonResponse(medList,safe=False, status = 200)
         except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
 
     elif request.method == 'POST':
         userAuth = checkAuth(request)
@@ -42,13 +42,15 @@ def makeBill(request):
                 totalProfit += amountList[i['med_uid']] * i['med_profit']
                 totalSell += amountList[i['med_uid']] * i['med_sellprice']        
             result = {'bill_total_sell':totalSell ,' bill_profit': totalProfit, 'user_uid': userAuth}
-            
-            Bill.objects.update_or_create(bill_date = inputdata.joindate ,
-            defaults=result)
+            try:
+                Bill.objects.update_or_create(bill_date = inputdata.joindate ,
+                defaults=result)
+            except:
+                return JsonResponse({'message': 'unauthorized' }, status= 401)
 
             return JsonResponse({'message': 'ok'},safe=False, status = 200)
         except: 
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
     
     else:
-        return HttpResponse(('Bad request'), status = 400)
+        return JsonResponse({'message': 'method not allowed'}, status= 405)

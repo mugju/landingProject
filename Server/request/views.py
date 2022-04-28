@@ -17,7 +17,7 @@ def postReq(request):
                 .values('req_uid', 'req_name','req_phone', 'req_med_detail' , 'req_joindate' , 'req_status'))
             return JsonResponse(targetdata,safe=False, status = 200)
         except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
 
     if request.method == 'POST':
         userAuth = checkAuth(request)
@@ -34,8 +34,12 @@ def postReq(request):
             )
 
             return JsonResponse({'message' : 'Ok'},safe=False, status = 200)
+
         except: 
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
+    
+    else:
+        return JsonResponse({'message': 'method not allowed'}, status= 405)
 
 def fixReq(request, uid):
     if request.method == 'PATCH': 
@@ -47,8 +51,10 @@ def fixReq(request, uid):
             targetInfo.req_status = targetStatus
             targetInfo.save()
             return JsonResponse({'message' : 'Ok'},safe=False, status = 200)
+        except Cus_req.DoesNotExist:
+            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401) 
         except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'}, status= 400) 
 
     elif request.method == 'DELETE':
         userAuth = checkAuth(request)
@@ -58,8 +64,8 @@ def fixReq(request, uid):
             return JsonResponse({'message': 'Ok'}, status = 200)
 
         except Cus_req.DoesNotExist:
-            return HttpResponse(('Bad request'), status = 400)
+            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401) 
 
         except:    
-            return HttpResponse(('Bad request'), status = 400)    
+            return JsonResponse({'message': 'bad input data'}, status= 400) 
 

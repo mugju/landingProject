@@ -9,11 +9,12 @@ from user.models import User
 
 def checkAuth(request):
     try:
+        #sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
         headerAuth = request.session['auth']
         userAuth = get_object_or_404( User, user_uid = headerAuth)
         return userAuth
     except User.DoesNotExist:
-        return JsonResponse({'message': 'unauthorized users'})
+        return JsonResponse({'message': 'user not found'}, status= 404)
 
 
 def companyMain(request):
@@ -25,7 +26,8 @@ def companyMain(request):
                 start = ((int(page) * 10) - 10)
                 end = (int(page) * 10)
             else:
-                return HttpResponseBadRequest(json.dumps('Bad request'))
+                #잘못된 값이 query로 들어올경우의 예외처리 
+                return JsonResponse({'message': 'bad input data'}, status= 400)
                 
             bankele = list(Bank.objects.all().values())
             companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
@@ -58,7 +60,7 @@ def companyMain(request):
                     , status = 200 
                     )
         except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
        
     if request.method == 'POST': #/company
         userAuth = checkAuth(request)
@@ -86,7 +88,9 @@ def companyMain(request):
                     , status = 200 
                     )
         except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
+    else: 
+        return JsonResponse({'message': 'method not allowed'}, status= 405)
         
 def companyDetail(request, uid):            
     # if request.method == 'GET': #company/{uid}
@@ -137,9 +141,9 @@ def companyDetail(request, uid):
             targetInfo.save()
             return JsonResponse({'message': 'Ok'}, status = 200)
         except Company.DoesNotExist:
-            return HttpResponse(('Bad request'), status = 400)
+            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401)
         except:    
-            return HttpResponse(('Bad request'), status = 400)
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
 
     elif request.method == 'DELETE': #company/{uid}
         userAuth = checkAuth(request)
@@ -150,10 +154,10 @@ def companyDetail(request, uid):
             return JsonResponse({'message': 'Ok'}, status = 200)
 
         except Company.DoesNotExist:
-            return HttpResponse(('Bad request'), status = 400)
+            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401)
         except:    
-            return HttpResponse(('Bad request'), status = 400)
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
         
     else:
-        return HttpResponse(('Bad request'), status = 400)
+        return JsonResponse({'message': 'method not allowed'}, status= 405)
 
