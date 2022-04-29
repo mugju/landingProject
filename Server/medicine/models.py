@@ -6,7 +6,7 @@ from user import models as USER # user_uid 사용하기 위함
 class Medicine(models.Model) :
     med_uid = models.AutoField(primary_key=True)
     user_uid = models.ForeignKey(USER.User,on_delete=models.SET_NULL,db_column='user_uid',null=True)
-    med_name = models.CharField(max_length=20)
+    med_name = models.CharField(max_length=100)
     med_type = models.CharField(max_length=8)
     med_buyprice = models.PositiveIntegerField()
     med_sellprice = models.PositiveIntegerField()
@@ -24,7 +24,7 @@ class Medicine(models.Model) :
 class Med_salt(models.Model) :
     salt_uid = models.AutoField(primary_key=True)
     med_uid = models.ForeignKey(Medicine, related_name="med_salt_set", on_delete=models.CASCADE, db_column='med_uid')
-    salt_name = models.CharField(max_length=20)
+    salt_name = models.CharField(max_length=100)
     salt_qty = models.DecimalField(max_digits=5, decimal_places=3) #다섯자리까지, 소숫점 셋째자리까지
     salt_qty_type = models.CharField(max_length=20)
     salt_desc = models.TextField()

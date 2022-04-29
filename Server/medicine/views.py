@@ -52,8 +52,10 @@ def med_index(request):
                 medicine_list.append(new)
             context = {'medicine_list': medicine_list, 'company_list': company_list, 'medicineallcount':medicineAllCount}
             return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
-        except:
+        except :
             return HttpResponseBadRequest(json.dumps('Bad request'))
+#         except Exception as e:
+#             return JsonResponse(httpError(e))
     else:#POST 방식일때
         try:
             message = med_insert(request, user_uid)

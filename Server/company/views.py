@@ -21,16 +21,18 @@ def companyMain(request):
         userAuth = checkAuth(request)
         try:
             page = request.GET['page']
-            if page != 1:
+            if int(page) > 0  :
                 start = ((int(page) * 10) - 10)
                 end = (int(page) * 10)
+            else:
+                return HttpResponseBadRequest(json.dumps('Bad request'))
+             
             bankele = list(Bank.objects.all().values())
             companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
             allcount = companylist.count()
             companyele = companylist[start:end]
-                    # .annotate(companyallcount = Subquery(Company.objects.filter(com_uid = OuterRef('pk'))\
-                    # .values('com_uid').annotate(count = Count('pk')).values('count'))))
             bankList = []
+
             for i in bankele:
                     bankList.append({i['bank_uid'] : i['bank_name']})
             print(companyele)

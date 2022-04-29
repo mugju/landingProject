@@ -48,11 +48,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_seed',
-    'corsheaders'
+    'corsheaders',
 ]
-
 CORS_ORIGIN_WHITELIST = []
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
@@ -60,11 +60,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -148,9 +147,38 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
+# SESSION_ENGINE="django.contrib.sessions.backends.cached_db"
 
 
 #Django Session Timeout Code
 SESSION_COOKIE_AGE = 1800   #30분 설정
 SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
+<<<<<<< HEAD
+=======
+
+
+# redis 관련 설정
+
+#redis  session 관련.
+SESSION_ENGINE = 'redis_sessions.session'
+
+SESSION_REDIS_HOST = 'localhost'
+SESSION_REDUS_PORT = '6379'
+SESSION_REDIS_DB = 0
+
+CACHE_TTL = 15
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'TIMEOUT': 5,
+        },
+    }
+}
+
+
+# brute buster 관련
+BB_BLOCK_INTERVAL = 3
+>>>>>>> c054e5d0d44682c33d279612184b0c4bb19af57d
