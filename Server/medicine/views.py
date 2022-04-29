@@ -153,4 +153,4 @@ def saltSave(salt_arr, med_uid):
                             salt_desc=salt["salt_desc"]
                             )
             med_salt.save()
-            #social branch create
+            #defualt change
