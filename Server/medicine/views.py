@@ -153,4 +153,4 @@ def saltSave(salt_arr, med_uid):
                             salt_desc=salt["salt_desc"]
                             )
             med_salt.save()
-            #defualt change
+            #push origin default로 되는가
