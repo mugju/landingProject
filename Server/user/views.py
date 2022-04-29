@@ -61,9 +61,9 @@ def signin(request):
 
         user = authenticate(request, password=user_password, username=user_email)  # 유저 인증과정
         if user is None:  # 회원정보 없는 경우.
-            try:
+            try: # 이메일은 맞고, 비밀번호는 틀린 경우
                 ui = User.objects.get(user_email = user_email)
-                if ui.login_blocked_time > datetime.now():      # 블록된 상태인지 아닌지 확인
+                if ui.login_blocked_time > datetime.now():      # 계정이 블록된 상태인지 아닌지 확인
                     return HttpResponse(json.dumps({"message": "user is lock","useTime": ui.login_blocked_time.strftime("%Y-%m-%d %H:%M:%S")}),
                                         content_type=u"application/json",
                                         status=401)
@@ -126,12 +126,10 @@ def signup(request):
             CODE = 200
 
         else:  # 비밀 번호가 같지 않은 경우.
-            output = {"message": "Password authorization failed"}
-            CODE = 401
+            output = {"message": "Password authorization failed"}; CODE = 401
 
     else:  # post 이외 방식 으로 접근 한 경우.
-        output = {"message": "Bad request"}
-        CODE = 400
+        output = {"message": "Bad request"}; CODE = 400
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
@@ -148,22 +146,19 @@ def pw_find(request):
 
         if user.user_storename == user_data["user_storename"]:
             request.session['auth'] = user.user_uid
-            output = {"message": "ok"}
-            CODE = 200
+            output = {"message": "ok"}; CODE = 200
 
         else:
-            output = {"message": "Incorrect user storename"}
-            CODE = 401
+            output = {"message": "Incorrect user storename"}; CODE = 401
 
     else:
-        output = {"message": "Bad request"}
-        CODE = 400
+        output = {"message": "Bad request"}; CODE = 400
 
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json", status=CODE)
 
 
-# 패스 워드 재설정 ==> 유저 정보 찾은 이후에 가능함.
+# =========패스 워드 재설정 ==> 유저 정보 찾은 이후에 가능함.===========
 
 def pw_set(request):
     if request.method == 'POST':
@@ -174,34 +169,31 @@ def pw_set(request):
 
             user.set_password(new_pw)
             user.save()
-            output = {"message": "Ok"}
-            CODE = 200
+            output = {"message": "Ok"}; CODE = 200
 
         except Exception as e:
             print(e)
-            output = {"message": "Bad request"}
-            CODE = 404
+            output = {"message": "Bad request"}; CODE = 404
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
                         status=CODE)
 
 
-# 유저 삭제 함수
+# =================유저 삭제 함수================
 
 def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
     session_uid = request.session["auth"]
     user = get_object_or_404(User, user_uid=session_uid)
 
-    if user.is_superuser == 1 or user.user_uid == user_uid:  # 어드민 이거나, 본인일 경우에 삭제 가능.
-        delete_user = User.objects.get(user_uid=user_uid)
-        delete_user.delete()
+    if user.is_superuser == 1 or user.user_uid == session_uid:  # 어드민 이거나, 본인일 경우에 삭제 가능.
+        User.objects.get(user_uid=user_uid).delete() # 찾아서 삭제함.
         return {"message": "Ok"}, 200
     else:
-        return {"message": "Permission rejected"}, 401
+        return {"message": "unauthorized"}, 401
 
 
-# 유저 정보 수정
+# ==============유저 정보 수정=====================
 
 def edit_user(request, user_uid):
     if request.method == 'PATCH':
@@ -215,31 +207,35 @@ def edit_user(request, user_uid):
                 user.user_storename = user_data["user_storename"]
                 user.set_password(user_data["user_pw"])
                 user.save()
-                output = {"message": "Ok"}
-                CODE = 200
-            else:
-                output = {"message": "Permission denied"}
-                CODE = 401
+                output = {"message": "Ok"} ; CODE = 200
+            else:  # 유저정보와 세션정보가 다를경우
+                output = {"message": "unauthorization"}; CODE = 401
         except Exception as e:
             print(e)
-            output = {"message": "Bad request"}
-            CODE = 400
+            output = {"message": "bad input data"}; CODE = 400
 
     elif request.method == 'DELETE':
         output, CODE = delete_user(request, user_uid)
-    else:
-        output = {"message": "Bad request"}
-        CODE = 400
+
+    else: # 허용하는 메소드가 아닐경우.
+        output = {"message": "method not allowed"}; CODE = 405
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
                         status=CODE)
 
 
-# 로그 아웃 함수
+# =============로그 아웃 함수==================
 
 def logout(request):
-    auth.logout(request)
-    output = {"message": "Ok"}
+    if request.method == 'POST':
+        try:
+            auth.logout(request)
+            output = {"message": "Ok"}; CODE = 200
+        except Exception as e:
+            print(e)
+            output = {"message": "user not found"};CODE = 404
+    else :
+        output = {"message": "method not allowed"}; CODE = 405
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
-                        status=200)
+                        status=CODE)
