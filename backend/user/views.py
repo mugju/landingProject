@@ -111,11 +111,14 @@ def signup(request):
         user_data = json.loads(request.body)  # JSON data parsing / 여기 에선 회원 가입 정보.
 
         # 이메일 중복된 경우
-        email_confirm = User.objects.get(user_email = user_data["user_email"])
-        if email_confirm is not None:
-            return HttpResponse(json.dumps( {"email_duplicatied" : True}),
+        try:
+            User.objects.get(user_email = user_data["user_email"])
+            return HttpResponse(json.dumps({"email_duplicatied": True}),
                                 content_type=u"application/json; charset=utf-8",
                                 status=400)
+        except:
+            pass # 없는경우
+
 
         if user_data["user_pw"] == user_data["user_pw_confirm"]:  # 비밀번호 확인
             user = User.objects.create_user(
