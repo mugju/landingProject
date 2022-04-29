@@ -153,8 +153,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #Django Session Timeout Code
 SESSION_COOKIE_AGE = 1800   #30분 설정
 SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
-<<<<<<< HEAD
-=======
 
 
 # redis 관련 설정
@@ -181,4 +179,4 @@ CACHES = {
 
 # brute buster 관련
 BB_BLOCK_INTERVAL = 3
->>>>>>> c054e5d0d44682c33d279612184b0c4bb19af57d
+
