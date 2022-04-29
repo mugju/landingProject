@@ -1,4 +1,4 @@
-git /Server/.env
+/Server/.env
 
 *.log 
 *.pot 
