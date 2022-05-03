@@ -4,6 +4,9 @@ from django.contrib.auth import authenticate
 import json
 from .models import User
 from bill.models import Bill
+from employee.models import Employee
+from medicine.models import Medicine
+from company.models import Company
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
@@ -25,14 +28,17 @@ from django.db.models import Sum
 
 # ===============메인화면 관련 ======================
 
-def main_data(user_data, bill_data):  # 로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋
+def main_data(user_data, bill_data,med_data, emp_data,com_data):  # 로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋
     output = dict()
     output["user_uid"] = user_data[0].user_uid
     output["user_storename"] = user_data[0].user_storename
     output["user_email"] = user_data[0].user_email
     output["user_totalreqs"] = user_data[0].req_set.filter(req_status=True).count()
+    output["total_medicine"]  = med_data.count()
     output["user_completedreq"] = user_data[0].req_set.filter(req_status=True).count()
     output["user_pendingreq"] = user_data[0].req_set.filter(req_status=False).count()
+    output["total_employee"] = emp_data.count()
+    output["total_company"] = com_data.count()
 
     profit_arr = list() # json 생성용
     sell_arr = list()
@@ -97,7 +103,10 @@ def signin(request):
 
         bill_data = Bill.objects.filter(user_uid=user.user_uid,
                                         bill_date__range=[date.today() - timedelta(days=4), date.today()])
-        output = main_data(user_info, bill_data)
+        med_data = Medicine.objects.filter(user_uid = user.user_uid)
+        emp_data = Employee.objects.filter(user_uid = user.user_uid)
+        com_data = Company.objects.filter(user_uid = user.user_uid)
+        output = main_data(user_info, bill_data,med_data, emp_data,com_data)
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
