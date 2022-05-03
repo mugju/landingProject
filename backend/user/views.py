@@ -141,7 +141,10 @@ def signup(request):
             user_info = User.objects.filter(user_uid=user.user_uid).prefetch_related('req_set')
             bill_data = Bill.objects.filter(user_uid=user.user_uid,
                                             bill_date__range=[date.today() - timedelta(days=4), date.today()])
-            output = main_data(user_info, bill_data)
+            med_data = Medicine.objects.filter(user_uid=user.user_uid)
+            emp_data = Employee.objects.filter(user_uid=user.user_uid)
+            com_data = Company.objects.filter(user_uid=user.user_uid)
+            output = main_data(user_info, bill_data,med_data, emp_data, com_data)
             CODE = 200
 
         else:  # 비밀 번호가 같지 않은 경우.
