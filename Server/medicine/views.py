@@ -14,10 +14,10 @@ def medSession(request):
        userAuth = get_object_or_404(User, user_uid = request.session['auth'])
        return userAuth.user_uid
     except User.DoesNotExist:
-       return JsonResponse({'message': 'unauthorized users'})
+       return JsonResponse({'message': 'user not found'}, status =404)
 
 def med_index(request):
-    user_uid = medSession(request)
+    user_uid = medSession(request) #권한 없음 404 에러 발생
     if request.method == 'GET':
         try:
             page = request.GET['page']
@@ -28,10 +28,11 @@ def med_index(request):
             medicineAllCount = medicineLi.count()#약의 개수 count
             medicinePage = list(medicineLi)[start:end]#페이징 개수만큼 잘라주기
 
-            companyLi = Company.objects.filter(user_uid=user_uid) #user의 거래처 uid, 이름 list
+            companyLi = list(Company.objects.filter(user_uid=user_uid)) #user의 거래처 uid, 이름 list
             company_list = []
+
             for data in companyLi:
-                company_list.append({data['com_uid'] : data['com_name']})
+                company_list.append({data.com_uid : data.com_name})
 
             medicine_list = []
             for data in medicinePage:
@@ -54,18 +55,19 @@ def med_index(request):
             return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
         except :
             return HttpResponseBadRequest(json.dumps('Bad request'))
-#         except Exception as e:
-#             return JsonResponse(httpError(e))
-    else:#POST 방식일때
+    elif request.method == 'POST':#POST 방식일때
         try:
             message = med_insert(request, user_uid)
-            result = {"message" : message}
-            return JsonResponse(result, json_dumps_params={'ensure_ascii': False} , status = 200)
+            context = {"message" : message}
+            return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
         except:
             return HttpResponseBadRequest(json.dumps('Bad request'))
+    else:# GET,POST가 아닐때
+        return JsonResponse({'message': 'method not allowed'}, status =405)
 
 def med_detail(request, med_uid):
     #사용자 아이디 확인
+    user_uid = medSession(request) #권한 없음 404 에러 발생
     if request.method == 'PATCH':
         try:
             Med_salt.objects.filter(med_uid=del_uid).delete()#해당하는 uid salt데이터 가져오고 지우기
@@ -75,13 +77,16 @@ def med_detail(request, med_uid):
             return JsonResponse(result, json_dumps_params={'ensure_ascii': False} , status = 200)
         except:
             return HttpResponseBadRequest(json.dumps('Bad request'))
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         try:
             medDelDate = get_object_or_404(Medicine, med_uid=med_uid)
             medDelDate.delete()
             return JsonResponse({"message":"ok"}, json_dumps_params={'ensure_ascii': False} , status = 200)
         except:
             return HttpResponseBadRequest(json.dumps('Bad request'))
+    else:# PATCH,DELETE가 아닐때
+        return JsonResponse({'message': 'method not allowed'}, status =405)
+
 
 #medicine insert 함수
 def med_insert(request, user_uid):
@@ -101,7 +106,11 @@ def med_insert(request, user_uid):
         med_qty= med["med_qty"],
         med_company= med["med_company"]
         )
-    medAdd.save()
+    try:
+        medAdd.save()
+    except:
+        return JsonResponse({"message" : "bad input data"},status=400)
+
     #새로 insert한 medcine의 med_uid 가져오기
     makeMeduid=Medicine.objects.get(user_uid=user_uid,med_name=med["med_name"]).med_uid
     #salt 추가 함수
@@ -123,11 +132,17 @@ def editMedicine(request, med_uid):
     medicine.med_instock= med_edit["med_instock"]
     medicine.med_qty= med_edit["med_qty"]
     medicine.med_company= med_edit["med_company"]
-    medicine.save()
+    try:
+        medicine.save()
+    except:
+        JsonResponse({"message":"medicine bad input data"})
     #해당 med_uid의 salt를 다 지워버리자
     saltDelete(med_uid)
-    #med_salt inset, update함수
-    saltSave(med_edit["med_salt"], med_uid)
+    try:
+        #med_salt inset, update함수
+        saltSave(med_edit["med_salt"], med_uid)
+    except:
+            JsonResponse({"message":"medsalt bad input data"})
 
     return "ok"
 
