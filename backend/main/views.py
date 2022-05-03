@@ -15,7 +15,7 @@ import json
 
 def index(request) :
     if request.session['auth']:
-        user_info = User.objects.get(user_uid = request.session['auth'])
+        user_info = User.objects.filter(user_uid = request.session['auth']).prefetch_related('req_set')
         bill_data = Bill.objects.filter(user_uid=request.session['auth'],
                                         bill_date__range=[date.today() - timedelta(days=4), date.today()])
 
