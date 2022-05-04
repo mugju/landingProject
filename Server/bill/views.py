@@ -42,11 +42,17 @@ def makeBill(request):
                 totalProfit += amountList[i['med_uid']] * i['med_profit']
                 totalSell += amountList[i['med_uid']] * i['med_sellprice']        
             result = {'bill_total_sell':totalSell ,' bill_profit': totalProfit, 'user_uid': userAuth}
+<<<<<<< HEAD
             try:
                 Bill.objects.update_or_create(bill_date = inputdata.joindate ,
                 defaults=result)
             except:
                 return JsonResponse({'message': 'unauthorized' }, status= 401)
+=======
+            
+            Bill.objects.update_or_create(bill_date = inputdata.joindate ,
+            defaults=result)
+>>>>>>> c054e5d0d44682c33d279612184b0c4bb19af57d
 
             return JsonResponse({'message': 'ok'},safe=False, status = 200)
         except: 

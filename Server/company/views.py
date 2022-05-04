@@ -22,13 +22,18 @@ def companyMain(request):
         userAuth = checkAuth(request)
         try:
             page = request.GET['page']
-            if page >= 1:
+            if int(page) > 0  :
                 start = ((int(page) * 10) - 10)
                 end = (int(page) * 10)
             else:
+<<<<<<< HEAD
                 #잘못된 값이 query로 들어올경우의 예외처리 
                 return JsonResponse({'message': 'bad input data'}, status= 400)
                 
+=======
+                return HttpResponseBadRequest(json.dumps('Bad request'))
+             
+>>>>>>> c054e5d0d44682c33d279612184b0c4bb19af57d
             bankele = list(Bank.objects.all().values())
             companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
             allcount = companylist.count()
