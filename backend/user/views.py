@@ -109,7 +109,6 @@ def signin(request):
         output = main_data(user_info, bill_data,med_data, emp_data,com_data)
     else:
         output = {"message": "method not allowed"}
-        CODE = 400
         return HttpResponse(json.dumps(output),
                             content_type=u"application/json; charset=utf-8",
                             status=405)
