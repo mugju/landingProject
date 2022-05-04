@@ -64,7 +64,8 @@ def emp_create(request):
             emp_phone=emp_data["emp_phone"],
             emp_address=emp_data["emp_address"],
             emp_account_no=emp_data["emp_account_no"],
-            emp_added_on=timezone.now()
+            # emp_added_on=timezone.now()
+            emp_added_on=emp_data["emp_added_on"]
         )
         try:    # save 쿼리를 쳤으나, 잘못된 데이터일 경우
             employee.save()

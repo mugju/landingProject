@@ -107,6 +107,12 @@ def signin(request):
         emp_data = Employee.objects.filter(user_uid = user.user_uid)
         com_data = Company.objects.filter(user_uid = user.user_uid)
         output = main_data(user_info, bill_data,med_data, emp_data,com_data)
+    else:
+        output = {"message": "method not allowed"}
+        CODE = 400
+        return HttpResponse(json.dumps(output),
+                            content_type=u"application/json; charset=utf-8",
+                            status=405)
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
