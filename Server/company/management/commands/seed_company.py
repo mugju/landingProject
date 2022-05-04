@@ -13,7 +13,7 @@ class Command(BaseCommand):
     def add_arguments(self,parser):
         parser.add_argument(
             "--total" ,
-            default = 5,
+            default = 3,
             type =int ,
             help = '얼마나 넣고싶나요?'
             )

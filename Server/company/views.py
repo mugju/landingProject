@@ -1,3 +1,5 @@
+from traceback import print_tb
+from types import NoneType
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest , JsonResponse
 from django.db.models import Count , OuterRef , Subquery
@@ -13,62 +15,62 @@ def checkAuth(request):
         headerAuth = request.session['auth']
         userAuth = get_object_or_404( User, user_uid = headerAuth)
         return userAuth
-    except User.DoesNotExist:
+    except:
         return JsonResponse({'message': 'user not found'}, status= 404)
+    
+
 
 
 def companyMain(request):
     if request.method == 'GET': #/company 
         userAuth = checkAuth(request)
-        try:
-            page = request.GET['page']
-            if page >= 1:
-                start = ((int(page) * 10) - 10)
-                end = (int(page) * 10)
+        page = request.GET['page'] 
+        if int(page) >= 1:
+            start = ((int(page) * 10) - 10)
+            end = (int(page) * 10)
+        else:
+            #잘못된 값이 query로 들어올경우의 예외처리 
+            return JsonResponse({'message': 'bad input data'}, status= 400)
+        bankele = list(Bank.objects.all().values())
+        companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
+        allcount = companylist.count()
+        companyele = companylist[start:end]
+        bankList = []
+
+        for i in bankele:
+                bankList.append({i['bank_uid'] : i['bank_name']})
+        result = []
+        #select_related를 사용하면 아래와 같이 json을 변경해주어야 한다. 
+        for e in companyele:
+            if e.bank_uid == None:
+                bankName = ''
             else:
-                #잘못된 값이 query로 들어올경우의 예외처리 
-                return JsonResponse({'message': 'bad input data'}, status= 400)
-                
-            bankele = list(Bank.objects.all().values())
-            companylist = Company.objects.select_related('bank_uid').filter(user_uid = userAuth.user_uid)
-            allcount = companylist.count()
-            companyele = companylist[start:end]
-            bankList = []
-
-            for i in bankele:
-                    bankList.append({i['bank_uid'] : i['bank_name']})
-            print(companyele)
-            result = []
-            #select_related를 사용하면 아래와 같이 json을 변경해주어야 한다. 
-            for e in companyele:
-                resultele = {}
-                resultele['com_uid'] = e.com_uid
-                resultele['com_name'] = e.com_name
-                resultele['com_licence_no'] = e.com_licence_no
-                resultele['com_address'] = e.com_address
-                resultele['com_contact_no'] = e.com_contact_no
-                resultele['com_email'] = e.com_email
-                resultele['com_description'] = e.com_description
-                resultele['com_account_no'] = e.com_account_no
-                resultele['bank_name'] = e.bank_uid.bank_name
-                resultele['com_joindate'] = e.com_joindate.strftime('%Y-%m-%d')
-                result.append(resultele)
-
-            return JsonResponse(
-                    {'companyallcount' : allcount,'company_list': result , 'bank_list': bankList}
-                    , json_dumps_params={'ensure_ascii': False} 
-                    , status = 200 
-                    )
-        except:
-            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
-       
-    if request.method == 'POST': #/company
+                bankName = e.bank_uid.bank_name
+            resultele = {}
+            resultele['com_uid'] = e.com_uid
+            resultele['com_name'] = e.com_name
+            resultele['com_licence_no'] = e.com_licence_no
+            resultele['com_address'] = e.com_address
+            resultele['com_contact_no'] = e.com_contact_no
+            resultele['com_email'] = e.com_email
+            resultele['com_description'] = e.com_description
+            resultele['com_account_no'] = e.com_account_no
+            resultele['bank_name'] = bankName
+            resultele['com_joindate'] = e.com_joindate.strftime('%Y-%m-%d')
+            result.append(resultele)
+        return JsonResponse(
+                {'companyallcount' : allcount,'company_list': result , 'bank_list': bankList}
+                , json_dumps_params={'ensure_ascii': False} 
+                , status = 200 
+                )
+    
+    elif request.method == 'POST': #/company
         userAuth = checkAuth(request)
 
         try:
             inputData = json.loads(request.body.decode('utf-8'))
             bank = Bank.objects.get(bank_uid = inputData['bank_uid'])
-
+    
             Company.objects.create(
                 com_name = inputData['com_name'],
                 com_licence_no = inputData['com_licence_no'],
@@ -81,8 +83,9 @@ def companyMain(request):
                 bank_uid = bank,
                 user_uid = userAuth
             )
+            
             return JsonResponse(
-                    inputData
+                    {'message':'ok'}
                     , safe= False
                     , json_dumps_params={'ensure_ascii': False} 
                     , status = 200 
@@ -123,12 +126,15 @@ def companyDetail(request, uid):
 
     if request.method == 'PATCH': #company/{uid}
         userAuth = checkAuth(request)
-
         try:
-            targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid) 
+            try:
+                targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid) 
+            except Company.DoesNotExist:
+                return JsonResponse({'message': 'unauthorization'},safe=False, status = 401)    
+            
             inputdata = json.loads(request.body.decode('utf-8'))
             bank = Bank.objects.get(bank_uid = inputdata['bank_uid'])
-
+             
             targetInfo.com_name = inputdata['com_name']
             targetInfo.com_licence_no = inputdata['com_licence_no']
             targetInfo.com_address = inputdata['com_address']
@@ -139,24 +145,29 @@ def companyDetail(request, uid):
             targetInfo.com_account_no = inputdata['com_account_no']
             targetInfo.bank_uid = bank
             targetInfo.save()
-            return JsonResponse({'message': 'Ok'}, status = 200)
-        except Company.DoesNotExist:
-            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401)
+    
+            return JsonResponse({'message': 'ok'}, status = 200)
+
         except:    
             return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
 
-    elif request.method == 'DELETE': #company/{uid}
+    if request.method == 'DELETE': #company/{uid}
         userAuth = checkAuth(request)
-        
         try:
-            targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid)
+            try:
+                targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid)    
+            except Company.DoesNotExist:
+                return JsonResponse({'message': 'unauthorization'},safe=False, status = 401)
+            
             targetInfo.delete()
-            return JsonResponse({'message': 'Ok'}, status = 200)
+    
+            return JsonResponse({'message': 'ok'}, status = 200)
 
-        except Company.DoesNotExist:
-            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401)
         except:    
             return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
+            
+        
+
         
     else:
         return JsonResponse({'message': 'method not allowed'}, status= 405)
