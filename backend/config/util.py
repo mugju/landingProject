@@ -89,7 +89,6 @@ def instacne_patch(self, table, url, testurl , inputdata, testuser,title):
     self.client = Client()
     print('==================================================')
     print(title)
-    print(url)
     print('')
     print('')
     # cookie에 sessionid를 set한다.
@@ -125,7 +124,6 @@ def instacne_patch(self, table, url, testurl , inputdata, testuser,title):
     print('')
 
     print('    4. 데이터 변경 테스트')
-    print(url)
     before = table.objects.filter(user_uid = testuser.user_uid).values()
     res = self.client.patch(url,json.dumps(inputdata),content_type='aplication/json')
     self.assertEqual(res.status_code, 200)
@@ -137,7 +135,7 @@ def instacne_patch(self, table, url, testurl , inputdata, testuser,title):
     print('')
     print('==================================================')
 
-def instance_delete(self, url, testurl, title):
+def instance_delete(self, url, testurl, title, table, testuser):
     self.client = Client()
     print('==================================================')
     print(title)
@@ -167,13 +165,14 @@ def instance_delete(self, url, testurl, title):
     print('    - 권한없는 변경 요청은 status401과 unauthorization 반환합니다.')
     print('')
 
-    # print('    4. 데이터 삭제 테스트')
-    # before = table.objects.filter(user_uid = testuser.user_uid).values()
-    # res = self.client.delete(url,content_type='aplication/json')
-    # self.assertEqual(res.status_code, 200)
-    # self.assertEqual(res.json(), {'message':'ok'})
-    # after = table.objects.filter(user_uid = testuser.user_uid).values()
-    # self.assertNotEqual(before,after)
-    # print('    - 삭제 성공시 status200과 ok를 반환합니다.')
-    # print('')
-    # print('==================================================')
+    print('    4. 데이터 삭제 테스트')
+    before = table.objects.filter(user_uid = testuser.user_uid).values()
+    print(before)
+    res = self.client.delete(url,content_type='aplication/json')
+    self.assertEqual(res.status_code, 200)
+    self.assertEqual(res.json(), {'message':'ok'})
+    after = table.objects.filter(user_uid = testuser.user_uid).values()
+    self.assertNotEqual(before,after)
+    print('    - 삭제 성공시 status200과 ok를 반환합니다.')
+    print('')
+    print('==================================================')

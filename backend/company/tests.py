@@ -54,7 +54,6 @@ class CompanyTest(TestCase , Company) :
             }
 
     dummydata = {
-        "com_uid": 1,
         "com_name": "원자력",
         "com_licence_no": "asdas123",
         "com_address": "대구광역시 중구",
@@ -78,5 +77,5 @@ class CompanyTest(TestCase , Company) :
         print('')
         print('')
         util.instance_delete(self, '/company/{}'.format(test_uid.com_uid),
-        '/company/{}'.format(3), 'company delete test')
+        '/company/{}'.format(3), 'company delete test', table, testuser)
 
