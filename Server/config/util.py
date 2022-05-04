@@ -30,7 +30,11 @@ def instance_get(self, table , url, data,title):
     res = self.client.put(url)
     self.assertEqual(res.status_code, 405) 
     self.assertEqual(res.json(), {'message':"method not allowed"})
+<<<<<<< HEAD
     print('    - 허용되지 않는 메소드 발생시 status 405가 반환된다.')
+=======
+    print('    - 허용되지 않는 메소드 발생시 statu 405가 반환된다.')
+>>>>>>> 1f318b6526097db5848639dc30a8b796650afa19
     print('')
 
     print('    2. 반환값 확인 테스트')
