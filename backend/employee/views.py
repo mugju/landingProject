@@ -91,7 +91,18 @@ def edit_employee(request,emp_uid):
     print("emp_data: {}".format(emp_data))
 
     employee = get_object_or_404(Employee, emp_uid = emp_uid)
-    if employee.user_uid == request.session['auth']: # 수정하고자 하는 정보가 유저에게 속한 정보일경우
+    print(employee)
+    mep = Employee.objects.filter(user_uid=1).values()
+    print(mep)
+    try:
+        useruid = request.session['auth']
+        print(useruid)
+    except :
+        return {"message": "unauthorized"}, 401
+    print("까보자까보자", employee)
+    print("까보자까보자", employee.user_uid, str(employee))
+    if employee.user_uid_id == useruid: # 수정하고자 하는 정보가 유저에게 속한 정보일경우
+
         try:
             employee.emp_name = emp_data["emp_name"]
             employee.emp_joindate = emp_data["emp_joindate"]
@@ -118,6 +129,15 @@ def edit_employee(request,emp_uid):
             return {"message": "bad input data"}, 400
     else:
         return{"message": "unauthorized"},401
+
+def delete_employee (requset, emp_uid) :
+    employee = get_object_or_404(Employee, emp_uid = emp_uid)
+    if employee.user_uid_id == requset.session['auth']:
+        employee.delete()
+    else :
+        return {"message": "unauthorized"}, 401
+
+    return{"message": "ok"}, 200
 
 
 def show_employee (request, page):
@@ -182,9 +202,12 @@ def emp_index(request):
 def emp_detail(request, emp_uid):
 
     if request.method == 'PATCH':    # 회원정보 수정할경우
-        result = edit_employee(request,emp_uid)
+        result,CODE = edit_employee(request,emp_uid)
+
+    elif request.method == 'DELETE':
+        result,CODE = delete_employee(request, emp_uid)
     else:
-        result = {"message": "Bad request"}
+        result = {"message": "method not allowed"}
         CODE = 405
     return HttpResponse(json.dumps(result),
                         content_type=u"application/json; charset=utf-8",
