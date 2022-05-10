@@ -42,7 +42,7 @@ def med_index(request):
                 new['med_type'] = data.med_type
                 new['med_buyprice'] = data.med_buyprice
                 new['med_sellprice'] = data.med_sellprice
-                new['med_csgt'] = data.med_cgst
+                new['med_cgst'] = data.med_cgst
                 new['med_sgst'] = data.med_sgst
                 new['med_expire'] = data.med_expire.strftime('%Y-%m-%d')
                 new['med_mfg'] = data.med_mfg.strftime('%Y-%m-%d')
