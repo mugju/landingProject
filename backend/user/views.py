@@ -100,6 +100,7 @@ def signin(request):
             user.login_count = 0
             user.save()
             request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
+            print("user auth : ", request.session['auth'])
 
         user_info = User.objects.filter(user_uid=user.user_uid).prefetch_related('req_set')
 
