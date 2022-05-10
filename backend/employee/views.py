@@ -157,7 +157,7 @@ def show_employee (request, page):
         if (page - 1) * 10 > len(emp_ele):
             return HttpResponse(json.dumps({"message": "Bad request"}),
                                 content_type=u"application/json; charset=utf-8",
-                                status=404)
+                                status=404),404
         else:
             output["employee_list"] = emp_temp[(page - 1) * 10: (page - 1) * 10 + 10]
 
