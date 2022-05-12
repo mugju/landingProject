@@ -28,7 +28,7 @@ def med_index(request):
             medicineAllCount = medicineLi.count()#약의 개수 count
             medicinePage = list(medicineLi)[start:end]#페이징 개수만큼 잘라주기
 
-            companyLi = list(Company.objects.filter(user_uid=user_uid)) #user의 거래처 uid, 이름 list
+            companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
             company_list = []
 
             for data in companyLi:
