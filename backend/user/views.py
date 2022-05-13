@@ -159,7 +159,7 @@ def signup(request):
             output = {"message": "Password authorization failed"}; CODE = 401
 
     else:  # post 이외 방식 으로 접근 한 경우.
-        output = {"message": "Bad request"}; CODE = 400
+        output = {"message": "method not allowed"}; CODE = 405
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
