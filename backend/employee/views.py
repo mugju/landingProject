@@ -109,7 +109,7 @@ def edit_employee(request,emp_uid):
             employee.emp_phone = emp_data["emp_phone"]
             employee.emp_address = emp_data["emp_address"]
             employee.emp_account_no = emp_data["emp_account_no"]
-            employee.bank_uid = emp_data["bank_uid"]
+            employee.bank_uid = Bank.objects.get(bank_uid = emp_data["bank_uid"])
             employee.save()
 
             Salary.objects.filter(emp_uid = emp_uid).delete()   # 먼저 기존에 있던 데이터를 싹 날려야함.
