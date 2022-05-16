@@ -13,9 +13,23 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 import os
+import dotenv
+dotenv.read_dotenv('./.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
+
+STATIC_URL = '/statics/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'statics')
+    ]
+
+#STATIC_URL = '/static/'
+#STATICFILES_DIRS = [
+#    BASE_DIR / 'static/',
+#   ]
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,7 +41,7 @@ SECRET_KEY = 'django-insecure-islrl8x)a2w-^e#^zd(-v2kf-@f7#9g%fe9qu*z=@64n4--t^^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["3.36.26.172","3.34.144.222","localhost"]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -51,13 +65,10 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 CORS_ORIGIN_WHITELIST = []
-CORS_ALLOWED_ORIGINS = []
-CSRF_TRUSTED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = ["http://localhost","http://hms.imtrial.com","http://hms.imtrial.com:3000"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost","http://hms.imtrial.com","http://hms.imtrial.com:3000"]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-
-
-
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -70,12 +81,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # 'DIRS': [BASE_DIR / 'user'],
+        #'DIRS': [BASE_DIR / 'user'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -89,7 +103,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -140,7 +153,10 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+#STATIC_URL = '/static/'
+#STATICFILES_DIRS = [
+#    BASE_DIR / 'static/',
+#    ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -157,10 +173,10 @@ SESSION_SAVE_EVERY_REQUEST = True   #요청시마다 세션 저장
 
 
 # same site 문제
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'lax'
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'lax'
 
 
 # redis 관련 설정
