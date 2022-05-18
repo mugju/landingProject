@@ -45,11 +45,13 @@ def main_data(user_data, bill_data,med_data, emp_data,com_data):  # 로그인 �
 
     for day in date_range(str(date.today() - timedelta(days=4)), str(date.today())):
         dic_profit = dict()
-        dic_profit[str(day)] = bill_data.filter(bill_date=day).aggregate(Sum('bill_profit'))["bill_profit__sum"]
+        dic_profit["date"] = day
+        dic_profit["won"] = bill_data.filter(bill_date=day).aggregate(Sum('bill_profit'))["bill_profit__sum"]
         profit_arr.append(dic_profit)
         
         dic_sell = dict()
-        dic_sell[str(day)] = bill_data.filter(bill_date=day).aggregate(Sum('bill_total_sell'))["bill_total_sell__sum"]
+        dic_sell["date"] = day
+        dic_sell["won"] = bill_data.filter(bill_date=day).aggregate(Sum('bill_total_sell'))["bill_total_sell__sum"]
         sell_arr.append(dic_sell)
     output['bill_profit'] = profit_arr
     output['bill_total_sell'] = sell_arr
@@ -84,7 +86,7 @@ def signin(request):
 
             except: pass # 없는 유저 이메일일 경우 => 그냥 404 띄워버리면 된다.
 
-            return HttpResponse(json.dumps({"message": "Bad request"}),
+            return HttpResponse(json.dumps({"message": "user not found"}),
                                 content_type=u"application/json; charset=utf-8",
                                 status=404)
 
@@ -98,6 +100,7 @@ def signin(request):
             user.login_count = 0
             user.save()
             request.session['auth'] = user.user_uid  # 세션을 통해 uid 넘겨줌
+            print("user auth : ", request.session['auth'])
 
         user_info = User.objects.filter(user_uid=user.user_uid).prefetch_related('req_set')
 
@@ -156,7 +159,7 @@ def signup(request):
             output = {"message": "Password authorization failed"}; CODE = 401
 
     else:  # post 이외 방식 으로 접근 한 경우.
-        output = {"message": "Bad request"}; CODE = 400
+        output = {"message": "method not allowed"}; CODE = 405
 
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
@@ -260,9 +263,24 @@ def logout(request):
             output = {"message": "Ok"}; CODE = 200
         except Exception as e:
             print(e)
-            output = {"message": "user not found"};CODE = 404
+            output = {"message":  "not find session"};CODE = 401
     else :
         output = {"message": "method not allowed"}; CODE = 405
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
                         status=CODE)
+
+def dashboard(request) :    # 대시 보드 뷰
+    if request.session['auth']:
+        user_info = User.objects.filter(user_uid = request.session['auth']).prefetch_related('req_set')
+        bill_data = Bill.objects.filter(user_uid=request.session['auth'],bill_date__range=[date.today() - timedelta(days=4), date.today()])
+
+        med_data = Medicine.objects.filter(user_uid=request.session['auth'])
+        emp_data = Employee.objects.filter(user_uid=request.session['auth'])
+        com_data = Company.objects.filter(user_uid=request.session['auth'])
+
+        output = main_data(user_info, bill_data, med_data, emp_data, com_data)
+
+        return HttpResponse(json.dumps(output),
+                        content_type=u"application/json; charset=utf-8",
+                        status=200)

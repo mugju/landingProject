@@ -26,6 +26,6 @@ urlpatterns = [
     path('customer/', include('request.urls' )),
     path('employee/', include('employee.urls')),
     path('user/', include('user.urls')),
-    path('', views.index)
+    # path('', views.index)
 ]
 
