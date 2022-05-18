@@ -7,7 +7,7 @@ urlpatterns = [
     path('find/',views.pw_find),        #  회원정보 찾기
     path('set/',views.pw_set),      #회원 비밀번호 변경
     path('<int:user_uid>/', views.edit_user),      # 회원정보 변경 및 삭제
-
+    path('', views.dashboard), #대시보드 api  변경으로 인한 수정
 
 
     path('logout/',views.logout),      # 로그아웃
