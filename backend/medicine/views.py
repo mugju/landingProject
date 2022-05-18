@@ -30,9 +30,10 @@ def med_index(request):
 
             companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
             company_list = []
-
+            i = 1 #company_list 앞에 uid가 아닌 순서를 넣기 위해
             for data in companyLi:
-                company_list.append({str(data.com_uid) : data.com_name})
+                company_list.append({str(i) : data.com_name})
+                i=i+1
 
             medicine_list = []
             for data in medicinePage:
