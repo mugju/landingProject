@@ -269,3 +269,18 @@ def logout(request):
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json; charset=utf-8",
                         status=CODE)
+
+def dashboard(request) :    # 대시 보드 뷰
+    if request.session['auth']:
+        user_info = User.objects.filter(user_uid = request.session['auth']).prefetch_related('req_set')
+        bill_data = Bill.objects.filter(user_uid=request.session['auth'],bill_date__range=[date.today() - timedelta(days=4), date.today()])
+
+        med_data = Medicine.objects.filter(user_uid=request.session['auth'])
+        emp_data = Employee.objects.filter(user_uid=request.session['auth'])
+        com_data = Company.objects.filter(user_uid=request.session['auth'])
+
+        output = main_data(user_info, bill_data, med_data, emp_data, com_data)
+
+        return HttpResponse(json.dumps(output),
+                        content_type=u"application/json; charset=utf-8",
+                        status=200)
