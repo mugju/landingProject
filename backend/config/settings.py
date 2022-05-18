@@ -23,7 +23,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
 
 STATIC_URL = '/statics/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'statics')
+    os.path.join(BASE_DIR, 'static')
     ]
 
 
@@ -63,14 +63,14 @@ INSTALLED_APPS = [
 CORS_ORIGIN_WHITELIST = []
 #배포용에서는 해당 주석 풀 것
 # CORS_ORIGIN_WHITELIST = ['http://localhost:3000' , 'http://hms.imtrial.com:3000' ]
-CORS_ALLOWED_ORIGINS = ["http://localhost","http://hms.imtrial.com","http://hms.imtrial.com:3000"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost","http://hms.imtrial.com","http://hms.imtrial.com:3000"]
+CORS_ALLOWED_ORIGINS = ["http://localhost","http://localhost:3000","http://hms.imtrial.com","http://hms.imtrial.com:3000"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost","http://localhost:3000","http://hms.imtrial.com","http://hms.imtrial.com:3000"]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contribs.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
