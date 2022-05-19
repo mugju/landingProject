@@ -182,7 +182,8 @@ def pw_find(request):
             output = {"message": "Incorrect user storename"}; CODE = 401
 
     else:
-        output = {"message": "Bad request"}; CODE = 400
+        output = {"message": "method not allowed"};
+        CODE = 405
 
     return HttpResponse(json.dumps(output, ensure_ascii=False),
                         content_type=u"application/json", status=CODE)
@@ -199,12 +200,14 @@ def pw_set(request):
 
             user.set_password(new_pw)
             user.save()
-            output = {"message": "Ok"}; CODE = 200
+            output = {"message": "ok"}; CODE = 200
 
         except Exception as e:
             print(e)
-            output = {"message": "Bad request"}; CODE = 404
-
+            output = {"message": "user not found"}; CODE = 404
+    else:
+        output = {"message": "method not allowed"};
+        CODE = 405
     return HttpResponse(json.dumps(output),
                         content_type=u"application/json; charset=utf-8",
                         status=CODE)

@@ -11,6 +11,7 @@ import json
 
 
 class MedicineTest(TestCase, Employee):
+    maxDiff = None
     def setUp(self):
         global testuser
         global nowdate
@@ -28,7 +29,7 @@ class MedicineTest(TestCase, Employee):
         testEmp = Employee.objects.create(
             user_uid=testuser,
             bank_uid=testbank,
-            emp_name='테스트직원',
+            emp_name='테스트 직원',
             emp_joindate=nowdate.strftime('%Y-%m-%d'),
             emp_phone='01040492323',
             emp_address='서울시 강남구',
@@ -49,7 +50,7 @@ class MedicineTest(TestCase, Employee):
                 "emp_uid": 1,
                 "emp_name": "테스트 직원",
                 "emp_joindate": datetime.now().strftime('%Y-%m-%d'),
-                "emp_phone": "0104-402323",
+                "emp_phone": "0104402323",
                 "emp_address": "서울시 강남구",
                 "emp_added_on": "2022-03-07",
                 "emp_account_no": 123123,
@@ -79,7 +80,7 @@ class MedicineTest(TestCase, Employee):
         "emp_uid": 1,
         "emp_name": "테스트 직원2",
         "emp_joindate": datetime.now().strftime('%Y-%m-%d'),
-        "emp_phone": "0104-402323",
+        "emp_phone": "0104402323",
         "emp_address": "서울시 노원구",
         "emp_added_on": "2022-03-07",
         "emp_account_no": 123123,
