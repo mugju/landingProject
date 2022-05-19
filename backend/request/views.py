@@ -1,3 +1,4 @@
+from os import curdir
 from django.db.models import Subquery , OuterRef
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseBadRequest , JsonResponse
@@ -13,9 +14,18 @@ def postReq(request):
         userAuth = checkAuth(request)
 
         try:
+            page = request.GET['page'] 
+            if int(page) >= 1:
+                start = ((int(page) * 10) - 10)
+                end = (int(page) * 10)
+                #잘못된 값이 query로 들어올경우의 예외처리 
+            else:return JsonResponse({'message': 'bad input data'}, status= 400)
+
             targetdata = list(Cus_req.objects.filter(user_uid = userAuth.user_uid)\
                 .values('req_uid', 'req_name','req_phone', 'req_med_detail' , 'req_joindate' , 'req_status'))
-            return JsonResponse(targetdata,safe=False, status = 200)
+            targetcount = targetdata.count()
+            targetresult = targetdata[start:end]
+            return JsonResponse({'requestallcount':targetcount,'request_list':targetresult},safe=False, status = 200)
         except:
             return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
 
@@ -59,7 +69,7 @@ def fixReq(request, uid):
     elif request.method == 'DELETE':
         userAuth = checkAuth(request)
         try:
-            targetInfo = Cus_req.objects.get(req_uid = uid, user_uid = 3) #userAuth.uid가 들어가야함    
+            targetInfo = Cus_req.objects.get(req_uid = uid, user_uid = userAuth.uid) 
             targetInfo.delete()
             return JsonResponse({'message': 'Ok'}, status = 200)
 

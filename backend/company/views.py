@@ -15,10 +15,8 @@ def checkAuth(request):
         headerAuth = request.session['auth']
         userAuth = get_object_or_404( User, user_uid = headerAuth)
         return userAuth
-    except:
+    except User.DoesNotExist:
         return JsonResponse({'message': 'user not found'}, status= 404)
-    
-
 
 
 def companyMain(request):
@@ -158,10 +156,11 @@ def companyDetail(request, uid):
         #         targetInfo = Company.objects.get(com_uid = uid, user_uid = userAuth.user_uid)    
         #     except Company.DoesNotExist:
         #         return JsonResponse({'message': 'unauthorization'},safe=False, status = 401)
-        print(uid)
-        targetInfo = Company.objects.get(com_uid = uid)
-        print(targetInfo)
-        targetInfo.delete()
+        try:
+            print(uid)
+            targetInfo = Company.objects.get(com_uid = uid)
+            print(targetInfo)
+            targetInfo.delete()
     
         #     return JsonResponse({'message': 'ok'}, status = 200)
 
@@ -170,6 +169,11 @@ def companyDetail(request, uid):
             
         
 
+        except Company.DoesNotExist:
+            return JsonResponse({'message': 'unauthorized'},safe=False, status = 401)
+        except:    
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
         
     else:
         return JsonResponse({'message': 'method not allowed'}, status= 405)
+
