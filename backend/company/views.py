@@ -67,27 +67,35 @@ def companyMain(request):
 
         try:
             inputData = json.loads(request.body.decode('utf-8'))
-            bank = Bank.objects.get(bank_uid=inputData['bank_uid'])
+            check_licence=Company.objects.filter(com_licence_no=inputData['com_licence_no']).count()
+            check_address=Company.objects.filter(com_address=inputData['com_address']).count() 
+            if check_licence != 0 or check_address !=0 :
+                return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
+            else:
+                try:
+                    bank = Bank.objects.get(bank_uid=inputData['bank_uid'])
+                    Company.objects.create(
+                        com_name=inputData['com_name'],
+                        com_licence_no=inputData['com_licence_no'],
+                        com_address=inputData['com_address'],
+                        com_contact_no=inputData['com_contact_no'],
+                        com_email=inputData['com_email'],
+                        com_description=inputData['com_description'],
+                        com_joindate=inputData['com_joindate'],
+                        com_account_no=inputData['com_account_no'],
+                        bank_uid=bank,
+                        user_uid=userAuth
+                    )
 
-            Company.objects.create(
-                com_name=inputData['com_name'],
-                com_licence_no=inputData['com_licence_no'],
-                com_address=inputData['com_address'],
-                com_contact_no=inputData['com_contact_no'],
-                com_email=inputData['com_email'],
-                com_description=inputData['com_description'],
-                com_joindate=inputData['com_joindate'],
-                com_account_no=inputData['com_account_no'],
-                bank_uid=bank,
-                user_uid=userAuth
-            )
-
-            return JsonResponse(
-                {'message': 'ok'}
-                , safe=False
-                , json_dumps_params={'ensure_ascii': False}
-                , status=200
-            )
+                    return JsonResponse(
+                        {'message': 'ok'}
+                        , safe=False
+                        , json_dumps_params={'ensure_ascii': False}
+                        , status=200
+                    )
+                except:
+                    return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
+        
         except:
             return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
     else:
