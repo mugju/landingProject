@@ -23,7 +23,9 @@ def makeBill(request):
             return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
 
     elif request.method == 'POST':
+
         userAuth = checkAuth(request)
+
         try:
             inputdata = json.loads(request.body.decode('utf-8'))
             totalProfit = 0
@@ -36,15 +38,20 @@ def makeBill(request):
                 amountList[i['med_uid']] = i['detail_amount']
 
             medData = Medicine.objects.filter(med_uid__in=medArr).values('med_uid', 'med_buyprice', 'med_sellprice')
-
+           
             for i in medData:
                 i['med_profit'] = (i['med_buyprice'] - i['med_sellprice'])
                 totalProfit += amountList[i['med_uid']] * i['med_profit']
                 totalSell += amountList[i['med_uid']] * i['med_sellprice']
+
+
             result = {'bill_total_sell': totalSell, ' bill_profit': totalProfit, 'user_uid': userAuth}
+
             try:
-                Bill.objects.update_or_create(bill_date=inputdata.joindate,
-                                              defaults=result)
+                Bill.objects.update_or_create(bill_date=inputdata['joindate'],
+                                              bill_total_sell =totalSell,
+                                              bill_profit = totalProfit,
+                                              user_uid = userAuth)
             except:
                 return JsonResponse({'message': 'unauthorized'}, status=401)
 
