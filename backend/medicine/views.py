@@ -34,7 +34,7 @@ def med_index(request):
                     start = ((int(page)*10)-10)
                     end = (int(page)*10)
                 medicineLi = list(Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set'))#미리 데이터를 캐싱하기 위해 list로 바로 DB에 접근
-                medicineAllCount = medicineLi.count()#약의 개수 count
+                medicineAllCount = len(medicineLi)#전체 약의 개수
                 medicinePage = medicineLi[start:end]#페이징 개수만큼 잘라주기
 
                 companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
