@@ -113,36 +113,36 @@ def med_insert(request, user_uid):
 def med_detail(request, med_uid):
     #사용자 아이디 확인
     user_uid = medSession(request) #권한 없음 404 에러 발생
-    if request.method == 'PATCH':
-        try:
-            #medicine 정보 수정
-            message = editMedicine(request, med_uid, user_uid)
-            if message == 400:
-                context = {'message':'bad input data'}
-                status = 400
-            elif message ==401:
-                context = {'message':'unauthorized'}
-                status = 401
-            else:
-                context = {'message': message}
-                status =200
-            return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = status)
-        except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
+    if user_uid == 403:
+        return JsonResponse({'message':'session ID not found'}, status=403)
+    elif user_uid == 404:
+        return JsonResponse({'message': 'user not found'}, status =404)
+    else: #사용자 아이디 확인 후 수정, 삭제 할 수 있다.
+        if request.method == 'PATCH':
+            try:
+                #medicine 정보 수정
+                message = editMedicine(request, med_uid, user_uid)
+                if message == 400:
+                    return JsonResponse({'message':'bad input data'}, json_dumps_params={'ensure_ascii': False} , status = 400)
+                elif message ==401:
+                    return JsonResponse({'message':'unauthorized'}, json_dumps_params={'ensure_ascii': False} , status = 401)
+                else:
+                    return JsonResponse({'message': message}, json_dumps_params={'ensure_ascii': False} , status = 200)
+            except:
+                return HttpResponseBadRequest(json.dumps('Bad request'))
+        elif request.method == 'DELETE':
+            try:
+                medDelData = Medicine.objects.get(med_uid=med_uid)
+            except: #삭제할 med_uid를 조회했을때 badinput data이면 권한 없는게 맞다.
+                return JsonResponse({'message': 'bad inpu data'}, json_dumps_params={'ensure_ascii': False} , status = 400)
 
-    elif request.method == 'DELETE':
-        try:
-            medDelData = Medicine.objects.get(med_uid=med_uid)
-        except: #삭제할 med_uid를 조회했을때 badinput data이면 권한 없는게 맞다.
-            return JsonResponse({'message': 'bad inpu data'}, json_dumps_params={'ensure_ascii': False} , status = 400)
-
-        if medDelData.user_uid_id != user_uid:# medcine_uid와 user_uid가 다르면 권한이 없다.
-            return JsonResponse({'message': 'unauthorized'}, json_dumps_params={'ensure_ascii': False} , status = 401)
-        else:#권한 있으면 삭제
-            medDelData.delete()
-            return JsonResponse({"message":"ok"}, json_dumps_params={'ensure_ascii': False} , status = 200)
-    else:# PATCH,DELETE가 아닐때
-        return JsonResponse({'message': 'method not allowed'}, status =405)
+            if medDelData.user_uid_id != user_uid:# medcine_uid와 user_uid가 다르면 권한이 없다.
+                return JsonResponse({'message': 'unauthorized'}, json_dumps_params={'ensure_ascii': False} , status = 401)
+            else:#권한 있으면 삭제
+                medDelData.delete()
+                return JsonResponse({"message":"ok"}, json_dumps_params={'ensure_ascii': False} , status = 200)
+        else:# PATCH,DELETE가 아닐때
+            return JsonResponse({'message': 'method not allowed'}, status =405)
 
 #med_detail edit 함수
 def editMedicine(request, med_uid, user_uid):
@@ -172,10 +172,12 @@ def editMedicine(request, med_uid, user_uid):
         return 400
 
     #해당 med_uid의 salt를 다 지워버리자
+    pre_med_salt = list(Med_salt.objects.filter(med_uid=med_uid)) #error를 대비해 미리 저장해놓기
     Med_salt.objects.filter(med_uid=med_uid).delete()#해당하는 uid salt데이터 가져오고 지우기
     #med_salt inset, update함수
-    result =saltSave(med_edit["med_salt"], med_uid)
+    result = saltSave(med_edit["med_salt"], med_uid)
     if result == 400:# salt update 중에 bad input 있을때
+        saltSave(pre_med_salt,med_uid)#지운 salt 정보 다시 저장하기
         return 400
     else:
         return "ok"
@@ -196,14 +198,3 @@ def saltSave(salt_arr, med_uid):
         return "ok"
     except:
         return 400
-#         else: #salt update (edit)
-#             print("update if문")
-#             med_salt = Med_salt(salt_uid=salt["salt_uid"],
-#                             med_uid=Medicine.objects.get(pk=med_uid),
-#                             salt_name=salt["salt_name"],
-#                             salt_qty=salt["salt_qty"],
-#                             salt_qty_type=salt["salt_qty_type"],
-#                             salt_desc=salt["salt_desc"]
-#                             )
-#             med_salt.save()
-            #push origin default로 되는가
