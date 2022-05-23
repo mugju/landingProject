@@ -11,12 +11,17 @@ from user.models import User
 
 def checkAuth(request):
     try:
-        # sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
-        headerAuth = request.session['auth']
-        userAuth = get_object_or_404(User, user_uid=headerAuth)
-        return userAuth
-    except:
-        return JsonResponse({'message': 'user not found'}, status=404)
+        #sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
+        try:
+            headerAuth = request.session['auth']
+        except:
+            return JsonResponse({'message': 'session ID not found'}, status= 403)
+    
+    userAuth = get_object_or_404( User, user_uid = headerAuth)
+    return userAuth
+    
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'user not found'}, status= 404)
 
 
 def companyMain(request):
