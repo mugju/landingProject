@@ -48,8 +48,6 @@ def makeBill(request):
                 checkBill = Bill.objects.get(user_uid=userAuth.user_uid,bill_date = inputdata['joindate'])
                 saveSell = checkBill.bill_total_sell
                 saveProfit = checkBill.bill_profit
-                print(saveProfit)
-                print(saveSell)
             except Bill.DoesNotExist: 
                 saveSell = 0
                 saveProfit = 0
@@ -57,8 +55,6 @@ def makeBill(request):
                 return JsonResponse({'message': 'unauthorized'}, status=401)
         
             result = {'bill_total_sell':totalSell+ saveSell ,'bill_profit': totalProfit+saveProfit, 'user_uid': userAuth}
-            print(result)
-            print(inputdata['joindate'])
             Bill.objects.update_or_create(bill_date = inputdata['joindate'],defaults = result ,)
             return JsonResponse({'message': 'ok'}, safe=False, status=200)
 
