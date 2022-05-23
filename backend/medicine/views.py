@@ -42,6 +42,7 @@ def med_index(request):
                     company_list.append({str(i) : data.com_name})
                     i=i+1
 
+
                 medicine_list = []
                 for data in medicinePage:
                     new = {}

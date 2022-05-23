@@ -1,12 +1,14 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 
 import json
 from collections import OrderedDict
 from .models import Employee, Salary
 from bank.models import Bank  # 은행 uid와  이름 형태 JSON 출력을 위함.
 from user.models import User
+
+from user.views import check_session
 
 # DIC 생성 함수들 : models 객체 -> 딕셔너리 형태
 
@@ -50,10 +52,13 @@ def bank_dic(Bank, seq):
 
 def emp_create(request):
     if request.method == 'POST':
+        useruid = check_session(request)
+        if useruid == 0:
+            return {'message': 'session ID not found'}, 403
 
         emp_data = json.loads(request.body)  # JSON data parsing
 
-        user = get_object_or_404(User, user_uid = request.session["auth"])
+        user = get_object_or_404(User, user_uid = useruid)
         bank = get_object_or_404(Bank, bank_uid = emp_data["bank_uid"])
 
         employee = Employee(
@@ -94,11 +99,9 @@ def edit_employee(request,emp_uid):
     print(employee)
     mep = Employee.objects.filter(user_uid=1).values()
     print(mep)
-    try:
-        useruid = request.session['auth']
-        print(useruid)
-    except :
-        return {"message": "unauthorized"}, 401
+    useruid = check_session(request)
+    if useruid == 0:
+        return {'message': 'session ID not found'}, 403
     print("까보자까보자", employee)
     print("까보자까보자", employee.user_uid, str(employee))
     if employee.user_uid_id == useruid: # 수정하고자 하는 정보가 유저에게 속한 정보일경우
@@ -131,9 +134,12 @@ def edit_employee(request,emp_uid):
     else:
         return{"message": "unauthorized"},401
 
-def delete_employee (requset, emp_uid) :
+def delete_employee (request, emp_uid) :
+    useruid = check_session(request)
+    if useruid == 0:
+        return {'message': 'session ID not found'}, 403
     employee = get_object_or_404(Employee, emp_uid = emp_uid)
-    if employee.user_uid_id == requset.session['auth']:
+    if employee.user_uid_id ==  useruid :
         employee.delete()
     else :
         return {"message": "unauthorized"}, 401
@@ -142,8 +148,11 @@ def delete_employee (requset, emp_uid) :
 
 
 def show_employee (request, page):
+    useruid = check_session(request)
+    if useruid == 0:
+        return {'message': 'session ID not found'}, 403
     # 은행이름, 직원 , 직원별 급여 총 3개의 테이블을 조인
-    emp_ele = Employee.objects.select_related('bank_uid').filter(user_uid=request.session['auth']).prefetch_related('salary_set')
+    emp_ele = Employee.objects.select_related('bank_uid').filter(user_uid=useruid).prefetch_related('salary_set')
 
     emp_temp = []  # employee dict 을 담을 배열
 

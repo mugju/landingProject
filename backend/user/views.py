@@ -10,7 +10,7 @@ from company.models import Company
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 # 날짜 관련
 from datetime import date, timedelta, datetime
@@ -24,6 +24,15 @@ def date_range(start, end):
 
 
 from django.db.models import Sum
+
+def check_session(request)  :  # 해당함수는 세션 아이디를 확인 후 없을 경우에는 jsonres를 반환 합니다 있다면 유저 uid 를 반환합니다
+    try:
+        user_uid = request.session['auth']
+        print("!!!!")
+        return user_uid
+    except :
+        return 0
+
 
 
 # ===============메인화면 관련 ======================
@@ -193,7 +202,8 @@ def pw_find(request):
 def pw_set(request):
     if request.method == 'POST':
         try:
-            user_uid = request.session["auth"]
+            # user_uid = request.session["auth"]
+            user_uid = check_session(request)
             user = get_object_or_404(User, user_uid=user_uid)
             new_pw = json.loads(request.body)["user_new_pw"]
 
@@ -213,7 +223,11 @@ def pw_set(request):
 # =================유저 삭제 함수================
 
 def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
-    session_uid = request.session["auth"]
+    # session_uid = request.session["auth"]
+    session_uid = check_session(request)
+    if session_uid == 0 :
+        return {'message': 'session ID not found'}, 401
+
     user = get_object_or_404(User, user_uid=session_uid)
 
     if user.is_superuser == 1 or user.user_uid == session_uid:  # 어드민 이거나, 본인일 경우에 삭제 가능.
@@ -228,7 +242,10 @@ def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회
 def edit_user(request, user_uid):
     if request.method == 'PATCH':
         try:
-            session_uid = request.session["auth"]
+            # session_uid = request.session["auth"]
+            session_uid = check_session(request)
+            if session_uid == 0:
+                return JsonResponse({'message': 'session ID not found'}, status= 403)
             if user_uid == session_uid:  # 세션 유저와 url 상 유저가 동일.
                 user = get_object_or_404(User, user_uid=user_uid)
                 user_data = json.loads(request.body)
@@ -271,7 +288,11 @@ def logout(request):
                         status=CODE)
 
 def dashboard(request) :    # 대시 보드 뷰
-    if request.session['auth']:
+    session_uid = check_session(request)
+    if session_uid == 0:
+        return JsonResponse({'message': 'session ID not found'}, status=403)
+
+    if session_uid > 0:
         user_info = User.objects.filter(user_uid = request.session['auth']).prefetch_related('req_set')
         bill_data = Bill.objects.filter(user_uid=request.session['auth'],bill_date__range=[date.today() - timedelta(days=4), date.today()])
 

@@ -10,18 +10,25 @@ from user.models import User
 
 
 def checkAuth(request):
+        #sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
     try:
-        # sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
         headerAuth = request.session['auth']
-        userAuth = get_object_or_404(User, user_uid=headerAuth)
-        return userAuth
+        userAuth = User.objects.get(user_uid = headerAuth)
+    except KeyError:
+        return JsonResponse({'message': 'session ID not found'}, status= 403)
+    # userAuth = get_object_or_404( User, user_uid = headerAuth)
     except:
-        return JsonResponse({'message': 'user not found'}, status=404)
+        return JsonResponse({'message': 'user not found'}, status= 404)
+
+    return userAuth
 
 
 def companyMain(request):
     if request.method == 'GET':  # /company
         userAuth = checkAuth(request)
+        if type(userAuth) == JsonResponse:
+            return userAuth
+
         page = request.GET['page']
         if int(page) >= 1:
             start = ((int(page) * 10) - 10)
@@ -64,30 +71,40 @@ def companyMain(request):
 
     elif request.method == 'POST':  # /company
         userAuth = checkAuth(request)
+        if type(userAuth) == JsonResponse:
+            return userAuth
 
         try:
             inputData = json.loads(request.body.decode('utf-8'))
-            bank = Bank.objects.get(bank_uid=inputData['bank_uid'])
+            check_licence=Company.objects.filter(com_licence_no=inputData['com_licence_no']).count()
+            check_address=Company.objects.filter(com_address=inputData['com_address']).count() 
+            if check_licence != 0 or check_address !=0 :
+                return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
+            else:
+                try:
+                    bank = Bank.objects.get(bank_uid=inputData['bank_uid'])
+                    Company.objects.create(
+                        com_name=inputData['com_name'],
+                        com_licence_no=inputData['com_licence_no'],
+                        com_address=inputData['com_address'],
+                        com_contact_no=inputData['com_contact_no'],
+                        com_email=inputData['com_email'],
+                        com_description=inputData['com_description'],
+                        com_joindate=inputData['com_joindate'],
+                        com_account_no=inputData['com_account_no'],
+                        bank_uid=bank,
+                        user_uid=userAuth
+                    )
 
-            Company.objects.create(
-                com_name=inputData['com_name'],
-                com_licence_no=inputData['com_licence_no'],
-                com_address=inputData['com_address'],
-                com_contact_no=inputData['com_contact_no'],
-                com_email=inputData['com_email'],
-                com_description=inputData['com_description'],
-                com_joindate=inputData['com_joindate'],
-                com_account_no=inputData['com_account_no'],
-                bank_uid=bank,
-                user_uid=userAuth
-            )
-
-            return JsonResponse(
-                {'message': 'ok'}
-                , safe=False
-                , json_dumps_params={'ensure_ascii': False}
-                , status=200
-            )
+                    return JsonResponse(
+                        {'message': 'ok'}
+                        , safe=False
+                        , json_dumps_params={'ensure_ascii': False}
+                        , status=200
+                    )
+                except:
+                    return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
+        
         except:
             return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
     else:
@@ -95,36 +112,39 @@ def companyMain(request):
 
 
 def companyDetail(request, uid):
-    # if request.method == 'GET': #company/{uid}
+# if request.method == 'GET': #company/{uid}
 
-    #     try:
-    #         headerAuth = request.headers['auth']
-    #         userAuth = get_object_or_404( User ,user_session = headerAuth)
-    #         targetInfo = Company.objects.select_related('bank_uid').get(com_uid = uid)
+#     try:
+#         headerAuth = request.headers['auth']
+#         userAuth = get_object_or_404( User ,user_session = headerAuth)
+#         targetInfo = Company.objects.select_related('bank_uid').get(com_uid = uid)
 
-    #         result = {}
-    #         result['com_uid'] = targetInfo.com_uid
-    #         result['com_name'] =targetInfo.com_name
-    #         result['com_licence_no'] = targetInfo.com_licence_no
-    #         result['com_address'] = targetInfo.com_address
-    #         result['com_contact_no'] = targetInfo.com_contact_no
-    #         result['com_email'] = targetInfo.com_email
-    #         result['com_description'] = targetInfo.com_description
-    #         result['com_joindate'] = targetInfo.com_joindate.strftime('%Y-%m-%d')
-    #         result['com_account_no'] = targetInfo.com_account_no
-    #         result['bank_name'] = targetInfo.bank_uid.bank_name
+#         result = {}
+#         result['com_uid'] = targetInfo.com_uid
+#         result['com_name'] =targetInfo.com_name
+#         result['com_licence_no'] = targetInfo.com_licence_no
+#         result['com_address'] = targetInfo.com_address
+#         result['com_contact_no'] = targetInfo.com_contact_no
+#         result['com_email'] = targetInfo.com_email
+#         result['com_description'] = targetInfo.com_description
+#         result['com_joindate'] = targetInfo.com_joindate.strftime('%Y-%m-%d')
+#         result['com_account_no'] = targetInfo.com_account_no
+#         result['bank_name'] = targetInfo.bank_uid.bank_name
 
-    #         return JsonResponse(
-    #                 result
-    #                 , safe= False
-    #                 , json_dumps_params={'ensure_ascii': False}
-    #                 , status = 200
-    #                 )
-    #     except:
-    #         return HttpResponseBadRequest(json.dumps('Bad request'))
+#         return JsonResponse(
+#                 result
+#                 , safe= False
+#                 , json_dumps_params={'ensure_ascii': False}
+#                 , status = 200
+#                 )
+#     except:
+#         return HttpResponseBadRequest(json.dumps('Bad request'))
 
     if request.method == 'PATCH':  # company/{uid}
         userAuth = checkAuth(request)
+        if type(userAuth) == JsonResponse:
+            return userAuth
+
         try:
             try:
                 targetInfo = Company.objects.get(com_uid=uid, user_uid=userAuth.user_uid)
@@ -152,6 +172,9 @@ def companyDetail(request, uid):
 
     if request.method == 'DELETE':  # company/{uid}
         userAuth = checkAuth(request)
+        if type(userAuth) == JsonResponse:
+            return userAuth
+            
         try:
             try:
                 targetInfo = Company.objects.get(com_uid=uid, user_uid=userAuth.user_uid)
