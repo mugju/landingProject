@@ -11,9 +11,13 @@ from company.models import Company
 #세션에 담긴 uid가 User에 존재하는지 확인
 def medSession(request):
     try:
-       userAuth = get_object_or_404(User, user_uid = request.session['auth'])
+        sessionId = request.session['auth'] #세션에 아이디가 있는지 없는지 확인하는 작업
+    except:# except에 들어오게 되면 session에 ID가 존재하지 않는것이다.
+        return JsonResponse({'message':'session ID not found'}, status=403)
+    try:
+       userAuth = get_object_or_404(User, user_uid = sessionId)#세션아이디가 회원인지 확인하는 작업
        return userAuth.user_uid
-    except:
+    except User.DoesNotExist:
        return JsonResponse({'message': 'user not found'}, status =404)
 
 def med_index(request):
