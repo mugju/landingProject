@@ -12,7 +12,10 @@ from user.models import User
 def checkAuth(request):
     try:
         #sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
-        headerAuth = request.session['auth']
+        try:
+            headerAuth = request.session['auth']
+        except:
+            return JsonResponse({'message': 'session ID not found'}, status= 403)
         userAuth = get_object_or_404( User, user_uid = headerAuth)
         return userAuth
     except User.DoesNotExist:
