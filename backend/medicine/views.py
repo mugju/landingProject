@@ -7,74 +7,79 @@ import json
 from .models import Medicine , Med_salt
 from user.models import User
 from company.models import Company
-# import time
+
 #세션에 담긴 uid가 User에 존재하는지 확인
 def medSession(request):
     try:
-        sessionId = request.session['auth'] #세션에 아이디가 있는지 없는지 확인하는 작업
+        sessionId = request.session['auth'] #세션에 아이디가 있는지 없는지 확인
     except:# except에 들어오게 되면 session에 ID가 존재하지 않는것이다.
-        return JsonResponse({'message':'session ID not found'}, status=403)
+        return 403
     try:
-       userAuth = get_object_or_404(User, user_uid = sessionId)#세션아이디가 회원인지 확인하는 작업
+       userAuth = get_object_or_404(User, user_uid = sessionId)#세션아이디가 회원인지 확인
        return userAuth.user_uid
     except User.DoesNotExist:
-       return JsonResponse({'message': 'user not found'}, status =404)
+       return 404
 
 def med_index(request):
     user_uid = medSession(request) #권한 없음 404 에러 발생
-    if request.method == 'GET':
-        try:
-            page = request.GET['page']
-            if page !=1 :
-                start = ((int(page)*10)-10)
-                end = (int(page)*10)
-            medicineLi = Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set')
-            medicineAllCount = medicineLi.count()#약의 개수 count
-            medicinePage = list(medicineLi)[start:end]#페이징 개수만큼 잘라주기
+    if user_uid == 403:
+        return JsonResponse({'message':'session ID not found'}, status=403)
+    elif user_uid == 404:
+        return JsonResponse({'message': 'user not found'}, status =404)
+    else:
+        if request.method == 'GET':
+            try:
+                page = request.GET['page']
+                if page !=1 :
+                    start = ((int(page)*10)-10)
+                    end = (int(page)*10)
+                medicineLi = Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set')
+                medicineAllCount = medicineLi.count()#약의 개수 count
+                medicinePage = list(medicineLi)[start:end]#페이징 개수만큼 잘라주기
 
-            companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
-            company_list = []
-            i = 1 #company_list 앞에 uid가 아닌 순서를 넣기 위해
-            for data in companyLi:
-                company_list.append({str(i) : data.com_name})
-                i=i+1
+                companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
+                company_list = []
+                i = 1 #company_list 앞에 uid가 아닌 순서를 넣기 위해
+                for data in companyLi:
+                    company_list.append({str(i) : data.com_name})
+                    i=i+1
 
-            medicine_list = []
-            for data in medicinePage:
-                new = {}
-                new['med_uid'] = data.med_uid
-                new['med_name'] = data.med_name
-                new['med_type'] = data.med_type
-                new['med_buyprice'] = data.med_buyprice
-                new['med_sellprice'] = data.med_sellprice
-                new['med_cgst'] = data.med_cgst
-                new['med_sgst'] = data.med_sgst
-                new['med_expire'] = data.med_expire.strftime('%Y-%m-%d')
-                new['med_mfg'] = data.med_mfg.strftime('%Y-%m-%d')
-                new['med_desc'] = data.med_desc
-                new['med_instock'] = data.med_instock
-                new['med_qty'] = str(data.med_qty)
-                new['med_company'] = data.med_company
-                new['med_salt'] = list(data.med_salt_set.values("salt_uid", "salt_name", "salt_qty", "salt_qty_type", "salt_desc"))
-                medicine_list.append(new)
-            context = {'medicineallcount':medicineAllCount, 'medicine_list': medicine_list, 'company_list': company_list}
-            return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
-        except Exception as e:
-            return JsonResponse({'Exception': e})
-    elif request.method == 'POST':#POST 방식일때
-        try:
-            message = med_insert(request, user_uid)
-            if message == 400: #medicine 수정 실패 bad input data 일때
-                context = {'message':'bad input data'}
-                status = 400
-            else:
-                context = {"message" : message}
-                status = 200
-            return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = status)
-        except:
-            return HttpResponseBadRequest(json.dumps('Bad request'))
-    else:# GET,POST가 아닐때
-        return JsonResponse({'message': 'method not allowed'}, status =405)
+                medicine_list = []
+                for data in medicinePage:
+                    new = {}
+                    new['med_uid'] = data.med_uid
+                    new['med_name'] = data.med_name
+                    new['med_type'] = data.med_type
+                    new['med_buyprice'] = data.med_buyprice
+                    new['med_sellprice'] = data.med_sellprice
+                    new['med_cgst'] = data.med_cgst
+                    new['med_sgst'] = data.med_sgst
+                    new['med_expire'] = data.med_expire.strftime('%Y-%m-%d')
+                    new['med_mfg'] = data.med_mfg.strftime('%Y-%m-%d')
+                    new['med_desc'] = data.med_desc
+                    new['med_instock'] = data.med_instock
+                    new['med_qty'] = str(data.med_qty)
+                    new['med_company'] = data.med_company
+                    new['med_salt'] = list(data.med_salt_set.values("salt_uid", "salt_name", "salt_qty", "salt_qty_type", "salt_desc"))
+                    medicine_list.append(new)
+                context = {'medicineallcount':medicineAllCount, 'medicine_list': medicine_list, 'company_list': company_list}
+                return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = 200)
+            except Exception as e:
+                return JsonResponse({'Exception': e})
+        elif request.method == 'POST':#POST 방식일때
+            try:
+                message = med_insert(request, user_uid)
+                if message == 400: #medicine 수정 실패 bad input data 일때
+                    context = {'message':'bad input data'}
+                    status = 400
+                else:
+                    context = {"message" : message}
+                    status = 200
+                return JsonResponse(context, json_dumps_params={'ensure_ascii': False} , status = status)
+            except:
+                return HttpResponseBadRequest(json.dumps('Bad request'))
+        else:# GET,POST가 아닐때
+            return JsonResponse({'message': 'method not allowed'}, status =405)
 
 #medicine insert 함수
 def med_insert(request, user_uid):
