@@ -38,24 +38,30 @@ def makeBill(request):
                 amountList[i['med_uid']] = i['detail_amount']
 
             medData = Medicine.objects.filter(med_uid__in=medArr).values('med_uid', 'med_buyprice', 'med_sellprice')
-           
+            
             for i in medData:
                 i['med_profit'] = (i['med_buyprice'] - i['med_sellprice'])
                 totalProfit += amountList[i['med_uid']] * i['med_profit']
                 totalSell += amountList[i['med_uid']] * i['med_sellprice']
-
-
-            result = {'bill_total_sell': totalSell, ' bill_profit': totalProfit, 'user_uid': userAuth}
-
-            try:
-                Bill.objects.update_or_create(bill_date=inputdata['joindate'],
-                                              bill_total_sell =totalSell,
-                                              bill_profit = totalProfit,
-                                              user_uid = userAuth)
+                
+            try: 
+                checkBill = Bill.objects.get(user_uid=userAuth.user_uid,bill_date = inputdata['joindate'])
+                saveSell = checkBill.bill_total_sell
+                saveProfit = checkBill.bill_profit
+                print(saveProfit)
+                print(saveSell)
+            except Bill.DoesNotExist: 
+                saveSell = 0
+                saveProfit = 0
             except:
                 return JsonResponse({'message': 'unauthorized'}, status=401)
-
+        
+            result = {'bill_total_sell':totalSell+ saveSell ,'bill_profit': totalProfit+saveProfit, 'user_uid': userAuth}
+            print(result)
+            print(inputdata['joindate'])
+            Bill.objects.update_or_create(bill_date = inputdata['joindate'],defaults = result ,)
             return JsonResponse({'message': 'ok'}, safe=False, status=200)
+
         except:
             return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
 
