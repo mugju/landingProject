@@ -13,19 +13,17 @@ def medSession(request):
     try:
         sessionId = request.session['auth'] #세션에 아이디가 있는지 없는지 확인
     except:# except에 들어오게 되면 session에 ID가 존재하지 않는것이다.
-        return 403
+        return JsonResponse({'message':'session ID not found'}, status=403)
     try:
        userAuth = get_object_or_404(User, user_uid = sessionId)#세션아이디가 회원인지 확인
        return userAuth.user_uid
     except User.DoesNotExist:
-       return 404
+       return JsonResponse({'message': 'user not found'}, status =404)
 
 def med_index(request):
     user_uid = medSession(request) #권한 없음 404 에러 발생
-    if user_uid == 403:
-        return JsonResponse({'message':'session ID not found'}, status=403)
-    elif user_uid == 404:
-        return JsonResponse({'message': 'user not found'}, status =404)
+    if type(user_uid) == JsonResponse:# session 확인 함수에서 error 발생시
+        return user_uid
     else:
         if request.method == 'GET':
             try:
@@ -112,11 +110,9 @@ def med_insert(request, user_uid):
 
 def med_detail(request, med_uid):
     #사용자 아이디 확인
-    user_uid = medSession(request) #권한 없음 404 에러 발생
-    if user_uid == 403:
-        return JsonResponse({'message':'session ID not found'}, status=403)
-    elif user_uid == 404:
-        return JsonResponse({'message': 'user not found'}, status =404)
+    user_uid = medSession(request)
+    if type(user_uid) == JsonResponse:# session 확인 함수에서 error 발생시
+        return user_uid
     else: #사용자 아이디 확인 후 수정, 삭제 할 수 있다.
         if request.method == 'PATCH':
             try:
