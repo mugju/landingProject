@@ -10,8 +10,10 @@ from request.models import Cus_req
 def postReq(request):
     if request.method == 'GET':
         userAuth = checkAuth(request)
-
-        try:
+        if type(userAuth) == JsonResponse:
+            return userAuth       
+        
+    try:
             page = request.GET['page'] 
             if int(page) >= 1:
                 start = ((int(page) * 10) - 10)
