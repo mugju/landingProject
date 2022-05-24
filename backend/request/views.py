@@ -81,7 +81,7 @@ def fixReq(request, uid):
             
         try:
             targetInfo = Cus_req.objects.get(req_uid=uid, user_uid=userAuth.user_uid)  # userAuth.uid가 들어가야함
-            # targetInfo.delete()
+            targetInfo.delete()
             return JsonResponse({'message': 'Ok'}, status=200)
 
         except Cus_req.DoesNotExist:
