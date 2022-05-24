@@ -7,8 +7,8 @@ from company.views import checkAuth
 from user.models import User
 from request.models import Cus_req
 
-
-if request.method == 'GET':
+def postReq(request):
+    if request.method == 'GET':
         userAuth = checkAuth(request)
 
         try:
