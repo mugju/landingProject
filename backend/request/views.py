@@ -7,11 +7,12 @@ from company.views import checkAuth
 from user.models import User
 from request.models import Cus_req
 
-
 def postReq(request):
     if request.method == 'GET':
         userAuth = checkAuth(request)
-
+        if type(userAuth) == JsonResponse:
+            return userAuth       
+        
         try:
             page = request.GET['page'] 
             if int(page) >= 1:
