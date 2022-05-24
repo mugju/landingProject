@@ -193,16 +193,13 @@ def pw_find(request):
     else:
         output = {"message": "Bad request"}; CODE = 400
 
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json", status=CODE)
-
+    return JsonResponse(output,status=CODE)
 
 # =========패스 워드 재설정 ==> 유저 정보 찾은 이후에 가능함.===========
 
 def pw_set(request):
     if request.method == 'POST':
         try:
-            # user_uid = request.session["auth"]
             user_uid = check_session(request)
             user = get_object_or_404(User, user_uid=user_uid)
             new_pw = json.loads(request.body)["user_new_pw"]
@@ -215,15 +212,12 @@ def pw_set(request):
             print(e)
             output = {"message": "Bad request"}; CODE = 404
 
-    return HttpResponse(json.dumps(output),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+    return JsonResponse(output,status = CODE)
 
 
 # =================유저 삭제 함수================
 
 def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
-    # session_uid = request.session["auth"]
     session_uid = check_session(request)
     if session_uid == 0 :
         return {'message': 'session ID not found'}, 401
@@ -242,7 +236,6 @@ def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회
 def edit_user(request, user_uid):
     if request.method == 'PATCH':
         try:
-            # session_uid = request.session["auth"]
             session_uid = check_session(request)
             if session_uid == 0:
                 return JsonResponse({'message': 'session ID not found'}, status= 403)
@@ -266,9 +259,8 @@ def edit_user(request, user_uid):
 
     else: # 허용하는 메소드가 아닐경우.
         output = {"message": "method not allowed"}; CODE = 405
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+
+    return JsonResponse(output, status=CODE)
 
 
 # =============로그 아웃 함수==================
@@ -283,9 +275,8 @@ def logout(request):
             output = {"message":  "not find session"};CODE = 401
     else :
         output = {"message": "method not allowed"}; CODE = 405
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+
+    return JsonResponse(output,status=CODE)
 
 def dashboard(request) :    # 대시 보드 뷰
     session_uid = check_session(request)
@@ -302,6 +293,4 @@ def dashboard(request) :    # 대시 보드 뷰
 
         output = main_data(user_info, bill_data, med_data, emp_data, com_data)
 
-        return HttpResponse(json.dumps(output),
-                        content_type=u"application/json; charset=utf-8",
-                        status=200)
+        return JsonResponse(output, status=200)
