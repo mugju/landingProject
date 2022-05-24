@@ -11,16 +11,23 @@ from request.models import Cus_req
 def postReq(request):
     if request.method == 'GET':
         userAuth = checkAuth(request)
-        if type(userAuth) == JsonResponse:
-            return userAuth
 
         try:
-            targetdata = list(Cus_req.objects.filter(user_uid=userAuth.user_uid) \
-                              .values('req_uid', 'req_name', 'req_phone', 'req_med_detail', 'req_joindate',
-                                      'req_status'))
-            return JsonResponse(targetdata, safe=False, status=200)
+            page = request.GET['page'] 
+            if int(page) >= 1:
+                start = ((int(page) * 10) - 10)
+                end = (int(page) * 10)
+                #잘못된 값이 query로 들어올경우의 예외처리 
+            else:return JsonResponse({'message': 'bad input data'}, status= 400)
+
+            targetdata = Cus_req.objects.filter(user_uid = userAuth.user_uid)\
+                .values('req_uid', 'req_name','req_phone', 'req_med_detail' , 'req_joindate' , 'req_status')
+            targetresult = list(targetdata[start:end])
+            targetcount = targetdata.count()
+
+            return JsonResponse({'requestallcount':targetcount,'request_list':targetresult},safe=False, status = 200)
         except:
-            return JsonResponse({'message': 'bad input data'}, safe=False, status=400)
+            return JsonResponse({'message': 'bad input data'},safe=False, status = 400)
 
     if request.method == 'POST':
         userAuth = checkAuth(request)
