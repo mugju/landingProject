@@ -58,6 +58,10 @@ def emp_create(request):
         user = get_object_or_404(User, user_uid = useruid)
         bank = get_object_or_404(Bank, bank_uid = emp_data["bank_uid"])
 
+        count = Employee.objects.filter(emp_phone = emp_data["emp_phone"]).count()
+        count = count + Employee.objects.filter(emp_account_no = emp_data["emp_account_no"]).count()
+        if count > 0:
+            return {'message': 'bad input data'}, 400
         employee = Employee(
             user_uid=user,
             bank_uid=bank,
@@ -96,6 +100,7 @@ def edit_employee(request,emp_uid):
         return {'message': 'session ID not found'}, 403
     if employee.user_uid_id == useruid: # 수정하고자 하는 정보가 유저에게 속한 정보일경우
 
+
         try:
             employee.emp_name = emp_data["emp_name"]
             employee.emp_joindate = emp_data["emp_joindate"]
@@ -105,6 +110,7 @@ def edit_employee(request,emp_uid):
             employee.bank_uid = Bank.objects.get(bank_uid = emp_data["bank_uid"])
             employee.save()
 
+            #날리기 전에 백업하고..
             Salary.objects.filter(emp_uid = emp_uid).delete()   # 먼저 기존에 있던 데이터를 싹 날려야함.
 
             bulk_salary = []        # 입력된 연봉정보 한번에 입력

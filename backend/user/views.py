@@ -42,7 +42,7 @@ def main_data(user_data, bill_data,med_data, emp_data,com_data):  # 로그인 �
     output["user_uid"] = user_data[0].user_uid
     output["user_storename"] = user_data[0].user_storename
     output["user_email"] = user_data[0].user_email
-    output["user_totalreqs"] = user_data[0].req_set.filter(req_status=True).count()
+    output["user_totalreqs"] = user_data[0].req_set.count()
     output["total_medicine"]  = med_data.count()
     output["user_completedreq"] = user_data[0].req_set.filter(req_status=True).count()
     output["user_pendingreq"] = user_data[0].req_set.filter(req_status=False).count()
