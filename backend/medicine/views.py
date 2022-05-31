@@ -8,10 +8,15 @@ from .models import Medicine , Med_salt
 from user.models import User
 from company.models import Company
 
+
+#DB에서 진짜 캐싱을 하는지 확인하기 위한 datetime
+from datetime import datetime
+
 #세션에 담긴 uid가 User에 존재하는지 확인
 def medSession(request):
     try:
         sessionId = request.session['auth'] #세션에 아이디가 있는지 없는지 확인
+
     except:# except에 들어오게 되면 session에 ID가 존재하지 않는것이다.
         return JsonResponse({'message':'session ID not found'}, status=403)
     try:
@@ -31,9 +36,17 @@ def med_index(request):
                 if page !=1 :
                     start = ((int(page)*10)-10)
                     end = (int(page)*10)
-                medicineLi = list(Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set'))#미리 데이터를 캐싱하기 위해 list로 바로 DB에 접근
-                medicineAllCount = len(medicineLi)#전체 약의 개수
+                print("!!!!!!!진짜 캐싱되는 지 확인!!!!!!!!!!!")
+                before = datetime.now()
+
+                medicineModel = Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set')
+                medicineLi = list(medicineModel)#미리 데이터를 캐싱하기 위해 list로 바로 DB에 접근
+                medicineAllCount = medicineModel.count()#전체 약의 개수
+                print("약의 개수 :",medicineAllCount)
                 medicinePage = medicineLi[start:end]#페이징 개수만큼 잘라주기
+
+
+                print("DB에서 select하여 데이터 가져오는데 걸린 시간 : ", datetime.now()-before)
 
                 companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
                 company_list = []
@@ -41,6 +54,7 @@ def med_index(request):
                 for data in companyLi:
                     company_list.append({str(i) : data.com_name})
                     i=i+1
+
 
                 medicine_list = []
                 for data in medicinePage:
@@ -83,6 +97,7 @@ def med_index(request):
 def med_insert(request, user_uid):
     med = json.loads(request.body) #JSON data parsing
     try:
+        print("sadasafasdasf",med)
         medAdd = Medicine(user_uid=User.objects.get(user_uid = request.session['auth']),
             med_name = med["med_name"],
             med_type = med["med_type"],
@@ -97,16 +112,21 @@ def med_insert(request, user_uid):
             med_qty= med["med_qty"],
             med_company= med["med_company"])
         medAdd.save()
-    except:
+    except Exception as e:
         return 400
-    #새로 insert한 medcine의 med_uid 가져오기
-    makeMeduid=Medicine.objects.get(user_uid=user_uid,med_name=med["med_name"]).med_uid
-    #salt 추가 함수
-    message = saltSave(med["med_salt"],makeMeduid)
-    if message ==400: #slat 수정 실패 bad input data 일때
-        return 400
-    else:
+
+    if not med["med_salt"]:
+        #salt 이 비어있으면 끝내기
         return "ok"
+    else:#salt가 존재
+
+        #salt 추가 함수
+        message = saltSave(med["med_salt"],medAdd)
+        if message ==400: #slat 수정 실패 bad input data 일때
+            return 400
+        else:
+            return "ok"
+
 
 def med_detail(request, med_uid):
     #사용자 아이디 확인
@@ -167,24 +187,29 @@ def editMedicine(request, med_uid, user_uid):
     except:
         return 400
 
-    #해당 med_uid의 salt를 다 지워버리자
-    pre_med_salt = list(Med_salt.objects.filter(med_uid=med_uid)) #error를 대비해 미리 저장해놓기
-    Med_salt.objects.filter(med_uid=med_uid).delete()#해당하는 uid salt데이터 가져오고 지우기
-    #med_salt inset, update함수
-    result = saltSave(med_edit["med_salt"], med_uid)
-    if result == 400:# salt update 중에 bad input 있을때
-        saltSave(pre_med_salt,med_uid)#지운 salt 정보 다시 저장하기
-        return 400
-    else:
+    #일단 수정할 med_salt가 있는지 확인을 하고 있으면 salt 부분 만져주고 아니면 return "ok"하기
+    if not med_edit["med_salt"]:
+        #salt가 비어있으면 끝내기
         return "ok"
+    else:
+        #해당 med_uid의 salt를 다 지워버리자
+        pre_med_salt = list(Med_salt.objects.filter(med_uid=med_uid)) #error를 대비해 미리 저장해놓기
+        Med_salt.objects.filter(med_uid=med_uid).delete()#해당하는 uid salt데이터 가져오고 지우기
+        #med_salt inset, update함수
+        result = saltSave(med_edit["med_salt"], medicine)
+        if result == 400:# salt update 중에 bad input 있을때
+            saltSave(pre_med_salt,medicine)#지운 salt 정보 다시 저장하기
+            return 400
+        else:
+            return "ok"
 
 
 #salt detail insert&update 함수
-def saltSave(salt_arr, med_uid):
+def saltSave(salt_arr, med):
     try:
         for salt in salt_arr:
             med_salt = Med_salt(
-                med_uid=Medicine.objects.get(pk=med_uid),
+                med_uid=med,
                 salt_name=salt["salt_name"],
                 salt_qty=salt["salt_qty"],
                 salt_qty_type=salt["salt_qty_type"],
