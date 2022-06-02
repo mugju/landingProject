@@ -7,6 +7,7 @@ from company.views import checkAuth
 from user.models import User
 from request.models import Cus_req
 
+
 def postReq(request):
     if request.method == 'GET':
         userAuth = checkAuth(request)
@@ -73,13 +74,13 @@ def fixReq(request, uid):
         except:
             return JsonResponse({'message': 'bad input data'}, status=400)
 
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         userAuth = checkAuth(request)
         if type(userAuth) == JsonResponse:
             return userAuth
             
         try:
-            targetInfo = Cus_req.objects.get(req_uid=uid, user_uid=3)  # userAuth.uid가 들어가야함
+            targetInfo = Cus_req.objects.get(req_uid=uid, user_uid=userAuth.user_uid)  # userAuth.uid가 들어가야함
             targetInfo.delete()
             return JsonResponse({'message': 'Ok'}, status=200)
 
