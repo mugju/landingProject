@@ -12,6 +12,7 @@ def checkAuth(request):
         #sessionid를 통해 사용자 정보를 확인 후 없을경우 404를 띄운다.
     try:
         headerAuth = request.session['auth']
+        print(headerAuth)
         userAuth = User.objects.get(user_uid = headerAuth)
     except KeyError:
         return JsonResponse({'message': 'session ID not found'}, status= 403)
@@ -20,6 +21,7 @@ def checkAuth(request):
         return JsonResponse({'message': 'user not found'}, status= 404)
 
     return userAuth
+
 
 
 def companyMain(request):

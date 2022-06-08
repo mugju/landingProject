@@ -34,7 +34,7 @@ def med_index(request):
                 medicineLi = list(Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set'))#미리 데이터를 캐싱하기 위해 list로 바로 DB에 접근
                 medicineAllCount = len(medicineLi)#전체 약의 개수
                 medicinePage = medicineLi[start:end]#페이징 개수만큼 잘라주기
-
+          
                 companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
                 company_list = []
                 i = 1 #company_list 앞에 uid가 아닌 순서를 넣기 위해
@@ -101,9 +101,9 @@ def med_insert(request, user_uid):
     except:
         return 400
     #새로 insert한 medcine의 med_uid 가져오기
-    makeMeduid=Medicine.objects.get(user_uid=user_uid,med_name=med["med_name"]).med_uid
+    # makeMeduid=Medicine.objects.get(user_uid=user_uid,med_name=med["med_name"])
     #salt 추가 함수
-    message = saltSave(med["med_salt"],makeMeduid)
+    message = saltSave(med["med_salt"],medAdd)
     if message ==400: #slat 수정 실패 bad input data 일때
         return 400
     else:
@@ -181,11 +181,12 @@ def editMedicine(request, med_uid, user_uid):
 
 
 #salt detail insert&update 함수
-def saltSave(salt_arr, med_uid):
+def saltSave(salt_arr, medAdd):
     try:
+        
         for salt in salt_arr:
             med_salt = Med_salt(
-                med_uid=Medicine.objects.get(pk=med_uid),
+                med_uid=medAdd,
                 salt_name=salt["salt_name"],
                 salt_qty=salt["salt_qty"],
                 salt_qty_type=salt["salt_qty_type"],
