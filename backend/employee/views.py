@@ -14,6 +14,16 @@ from user.views import check_session
 # ========employee JSON 생성함수 =================
 
 def emp_dic(Data):
+    """
+            employee 인원 정보를 dict 형태로 정리하는 함수
+
+                Args:
+                    Data(json) : 클라이언트로 부터의 요청
+
+                Returns:
+                    output (json)   :  employee dict 정보보
+
+           """
     output = dict()
 
     output["uid"] = Data.emp_uid
@@ -39,6 +49,17 @@ def emp_dic(Data):
 # ==========은행 JSON 형태 출력=================
 
 def bank_dic(Bank, seq):
+    """
+                bank 정보를 dict 형태로 정리하는 함수
+
+                    Args:
+                        Bank(model) : bank 모델 객체
+                        seq(int) : 은행별 고유 id
+
+                    Returns:
+                        output (json)   :  bank dict 정보
+
+               """
     output = dict()
     seq = str(seq)  # key 값
     output[seq] = Bank.bank_name
@@ -49,6 +70,22 @@ def bank_dic(Bank, seq):
 # ============employee 생성 함수===============
 
 def emp_create(request):
+    """
+            유저 수정함수
+
+                Args:
+                    request : 클라이언트로 부터의 요청
+
+                Returns:
+                    output (json)   :  유저정보 수정 여부를 반환함.
+
+                Raises:
+                    400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                    403 {"message" : "session ID not found" } : 저장된 세션정보가 없는 경우
+
+                    405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+            """
     if request.method == 'POST':
         useruid = check_session(request)
         if useruid == 0:
@@ -92,6 +129,22 @@ def emp_create(request):
 # =============근로자 정보 수정================
 
 def edit_employee(request,emp_uid):
+    """
+                유저 수정함수
+
+                    Args:
+                        request : 클라이언트로 부터의 요청
+
+                    Returns:
+                        output (json)   :  유저정보 수정 여부를 반환함.
+
+                    Raises:
+                        400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                        403 {"message" : "session ID not found" } : 저장된 세션정보가 없는 경우
+
+                        405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+                """
     emp_data = json.loads(request.body)  # JSON data parsing
     employee = get_object_or_404(Employee, emp_uid = emp_uid)
 
