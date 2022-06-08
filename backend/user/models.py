@@ -1,10 +1,8 @@
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 
 # 장고 기본 user를 상속받아 사용
 import datetime
-from django.utils import timezone
-
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 
 # Create your models here.
 class UserManager(BaseUserManager):   # 슈퍼유저를 만들어줄 무언가..?

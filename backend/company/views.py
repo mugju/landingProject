@@ -25,6 +25,27 @@ def checkAuth(request):
 
 
 def companyMain(request):
+    """
+    유저 로그아웃 함수        
+        Allowed Method:
+            GET  
+            POST
+            
+        Args:
+            GET(int): 메뉴구성을 위한 Company List를 반환 
+            POST: Company게시글 작성을위한 요청 
+
+        Returns:
+            GET(int): User가 작성한 Company내역을 int로 페이징하여 반환합니다.
+            POST: 정상적으로 게시글이 작성되면 {message: ok}를 반환합니다.
+
+        Raises:
+            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우     
+            401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+            403 {"message" : "session ID not found"} : User의 권한이 없는경우
+            404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
+    """
     if request.method == 'GET':  # /company
         userAuth = checkAuth(request)
         if type(userAuth) == JsonResponse:
@@ -113,34 +134,27 @@ def companyMain(request):
 
 
 def companyDetail(request, uid):
-# if request.method == 'GET': #company/{uid}
+    """
+    유저 로그아웃 함수        
+        Allowed Method:
+            PATCH
+            DELETE
+            
+        Args:
+            PATCH(int): int로 받은 Company의 정보를 PATCH 합니다.
+            DELETE: Company게시글 작성을위한 요청 
 
-#     try:
-#         headerAuth = request.headers['auth']
-#         userAuth = get_object_or_404( User ,user_session = headerAuth)
-#         targetInfo = Company.objects.select_related('bank_uid').get(com_uid = uid)
+        Returns:
+            PATCH(int): 새로운 Company정보를 추가합니다.
+            DELETE: Company게시글을 삭제합니다.
 
-#         result = {}
-#         result['com_uid'] = targetInfo.com_uid
-#         result['com_name'] =targetInfo.com_name
-#         result['com_licence_no'] = targetInfo.com_licence_no
-#         result['com_address'] = targetInfo.com_address
-#         result['com_contact_no'] = targetInfo.com_contact_no
-#         result['com_email'] = targetInfo.com_email
-#         result['com_description'] = targetInfo.com_description
-#         result['com_joindate'] = targetInfo.com_joindate.strftime('%Y-%m-%d')
-#         result['com_account_no'] = targetInfo.com_account_no
-#         result['bank_name'] = targetInfo.bank_uid.bank_name
-
-#         return JsonResponse(
-#                 result
-#                 , safe= False
-#                 , json_dumps_params={'ensure_ascii': False}
-#                 , status = 200
-#                 )
-#     except:
-#         return HttpResponseBadRequest(json.dumps('Bad request'))
-
+        Raises:
+            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우     
+            401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+            403 {"message" : "session ID not found"} : User의 권한이 없는경우
+            404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
+    """
     if request.method == 'PATCH':  # company/{uid}
         userAuth = checkAuth(request)
         if type(userAuth) == JsonResponse:
