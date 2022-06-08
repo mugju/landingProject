@@ -26,13 +26,14 @@ def checkAuth(request):
 
 def companyMain(request):
     """
-    유저 로그아웃 함수        
+    Company GET, POST 함수     
         Allowed Method:
             GET  
             POST
             
         Args:
             GET(int): 메뉴구성을 위한 Company List를 반환 
+
             POST: Company게시글 작성을위한 요청 
 
         Returns:
@@ -40,10 +41,14 @@ def companyMain(request):
             POST: 정상적으로 게시글이 작성되면 {message: ok}를 반환합니다.
 
         Raises:
-            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우     
+            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우 
+
             401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+
             403 {"message" : "session ID not found"} : User의 권한이 없는경우
+
             404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+
             405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
     """
     if request.method == 'GET':  # /company
@@ -135,14 +140,15 @@ def companyMain(request):
 
 def companyDetail(request, uid):
     """
-    유저 로그아웃 함수        
+    Company PATCH, DELETE 함수       
         Allowed Method:
             PATCH
             DELETE
             
         Args:
             PATCH(int): int로 받은 Company의 정보를 PATCH 합니다.
-            DELETE: Company게시글 작성을위한 요청 
+
+            DELETE(int): Company게시글 삭제를 위한 요청 
 
         Returns:
             PATCH(int): 새로운 Company정보를 추가합니다.
@@ -150,9 +156,13 @@ def companyDetail(request, uid):
 
         Raises:
             400 {"message" : "not find session" } : 로그인 되어있지 않은 경우     
+
             401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+
             403 {"message" : "session ID not found"} : User의 권한이 없는경우
+
             404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+
             405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
     """
     if request.method == 'PATCH':  # company/{uid}

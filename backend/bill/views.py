@@ -13,6 +13,27 @@ from user.models import User
 
 
 def makeBill(request):
+    """
+    Bill GET, POST 함수        
+        Allowed Method:
+            GET  
+            POST
+
+        Returns:
+            GET(int): User가 작성한 Medicine의 전체 내역에서 {'med_uid', 'med_name', 'med_sellprice'} 데이터만 반환한다.
+            POST: bill이 정상적으로 저장되면 {message: ok}를 반환합니다.
+
+        Raises:
+            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우 
+
+            401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+
+            403 {"message" : "session ID not found"} : User의 권한이 없는경우
+
+            404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+            
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
+    """
     if request.method == 'GET':
         userAuth = checkAuth(request)
         if type(userAuth) == JsonResponse:
@@ -32,19 +53,6 @@ def makeBill(request):
 
         try:
             inputdata = json.loads(request.body.decode('utf-8'))
-#             {
-#   "joindate": "2022-04-25",
-#   "med_list": [
-#     {
-#       "med_uid": 2,
-#       "detail_amount": 10
-#     },
-#     {
-#       "med_uid": 1,
-#       "detail_amount": 20
-#     }
-#   ]
-# }
             totalProfit = 0
             totalSell = 0
             medArr = []
