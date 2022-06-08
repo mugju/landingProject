@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.http import HttpResponse,JsonResponse
 
 import json
@@ -15,6 +14,16 @@ from user.views import check_session
 # ========employee JSON 생성함수 =================
 
 def emp_dic(Data):
+    """
+            employee 인원 정보를 dict 형태로 정리하는 함수
+
+                Args:
+                    Data(json) : 클라이언트로 부터의 요청
+
+                Returns:
+                    output (json)   :  employee dict 정보보
+
+           """
     output = dict()
 
     output["uid"] = Data.emp_uid
@@ -29,18 +38,28 @@ def emp_dic(Data):
     sal_data = list(Data.salary_set.values())
 
     for i in sal_data:      # 조인한 테이블 전처리
-        i["sal_date"] = str( i["sal_date"])
+        i["sal_date"] = str( i["sal_date"])     #문자열 자동 변환이 안되서 명시적으로 실행해줌
         i["sal_joindate"] = str( i["sal_joindate"])
-        del i["emp_uid_id"]
+        del i["emp_uid_id"]     #자동 정렬하면서 생기는 컬럼
 
     output["emp_salary"] = sal_data
 
     return output
 
-
 # ==========은행 JSON 형태 출력=================
 
 def bank_dic(Bank, seq):
+    """
+                bank 정보를 dict 형태로 정리하는 함수
+
+                    Args:
+                        Bank(model) : bank 모델 객체
+                        seq(int) : 은행별 고유 id
+
+                    Returns:
+                        output (json)   :  bank dict 정보
+
+               """
     output = dict()
     seq = str(seq)  # key 값
     output[seq] = Bank.bank_name
@@ -51,16 +70,35 @@ def bank_dic(Bank, seq):
 # ============employee 생성 함수===============
 
 def emp_create(request):
+    """
+            유저 수정함수
+
+                Args:
+                    request : 클라이언트로 부터의 요청
+
+                Returns:
+                    output (json)   :  유저정보 수정 여부를 반환함.
+
+                Raises:
+                    400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                    403 {"message" : "session ID not found" } : 저장된 세션정보가 없는 경우
+
+                    405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+            """
     if request.method == 'POST':
         useruid = check_session(request)
         if useruid == 0:
             return {'message': 'session ID not found'}, 403
 
         emp_data = json.loads(request.body)  # JSON data parsing
-
         user = get_object_or_404(User, user_uid = useruid)
         bank = get_object_or_404(Bank, bank_uid = emp_data["bank_uid"])
 
+        count = Employee.objects.filter(emp_phone = emp_data["emp_phone"]).count()
+        count = count + Employee.objects.filter(emp_account_no = emp_data["emp_account_no"]).count()
+        if count > 0:
+            return {'message': 'bad input data'}, 400
         employee = Employee(
             user_uid=user,
             bank_uid=bank,
@@ -91,20 +129,30 @@ def emp_create(request):
 # =============근로자 정보 수정================
 
 def edit_employee(request,emp_uid):
+    """
+                유저 수정함수
+
+                    Args:
+                        request : 클라이언트로 부터의 요청
+
+                    Returns:
+                        output (json)   :  유저정보 수정 여부를 반환함.
+
+                    Raises:
+                        400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                        403 {"message" : "session ID not found" } : 저장된 세션정보가 없는 경우
+
+                        405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+                """
     emp_data = json.loads(request.body)  # JSON data parsing
-
-    print("emp_data: {}".format(emp_data))
-
     employee = get_object_or_404(Employee, emp_uid = emp_uid)
-    print(employee)
-    mep = Employee.objects.filter(user_uid=1).values()
-    print(mep)
+
     useruid = check_session(request)
     if useruid == 0:
         return {'message': 'session ID not found'}, 403
-    print("까보자까보자", employee)
-    print("까보자까보자", employee.user_uid, str(employee))
     if employee.user_uid_id == useruid: # 수정하고자 하는 정보가 유저에게 속한 정보일경우
+
 
         try:
             employee.emp_name = emp_data["emp_name"]
@@ -115,6 +163,7 @@ def edit_employee(request,emp_uid):
             employee.bank_uid = Bank.objects.get(bank_uid = emp_data["bank_uid"])
             employee.save()
 
+            #날리기 전에 백업하고..
             Salary.objects.filter(emp_uid = emp_uid).delete()   # 먼저 기존에 있던 데이터를 싹 날려야함.
 
             bulk_salary = []        # 입력된 연봉정보 한번에 입력
@@ -125,15 +174,17 @@ def edit_employee(request,emp_uid):
                 new_salary.sal_joindate = ele["sal_joindate"]
                 new_salary.emp_uid = employee
                 bulk_salary.append(new_salary)
-
             Salary.objects.bulk_create(bulk_salary)
             return {"message": "Ok"},200
+
         except Exception as e:
             print("error occured!! : ",e)
             return {"message": "bad input data"}, 400
     else:
         return{"message": "unauthorized"},401
 
+
+# =============근로자 정보 삭제=================
 def delete_employee (request, emp_uid) :
     useruid = check_session(request)
     if useruid == 0:
@@ -155,7 +206,6 @@ def show_employee (request, page):
     emp_ele = Employee.objects.select_related('bank_uid').filter(user_uid=useruid).prefetch_related('salary_set')
 
     emp_temp = []  # employee dict 을 담을 배열
-
     for i in emp_ele:
         emp_temp.append(emp_dic(i))
 
@@ -165,9 +215,7 @@ def show_employee (request, page):
     # 페이징 관련 코드
     try:
         if (page - 1) * 10 > len(emp_ele):
-            return HttpResponse(json.dumps({"message": "Bad request"}),
-                                content_type=u"application/json; charset=utf-8",
-                                status=404),404
+            return JsonResponse({"message": "Bad request"}, status=404)
         else:
             output["employee_list"] = emp_temp[(page - 1) * 10: (page - 1) * 10 + 10]
 
@@ -186,15 +234,14 @@ def show_employee (request, page):
     return output,CODE
 
 
+# 뒤에 uid가 안붙는 view 함수  ex) show 함수, create 함수
 def emp_index(request):
     if request.method == 'GET':  # GET 방식일 경우 딕셔너리 조작후, json 변환 시도.
-
         try:
             page = int(request.GET.get('page'))
         except Exception as e:
             print("Exception occurred : {}".format(e))      # 페이지 변수 없을 경우
             page = 1
-
         result, CODE = show_employee(request, page)
 
     elif request.method == 'POST':  # POST 방식일 경우 근로자 만들 수 있어야 함.
@@ -204,13 +251,11 @@ def emp_index(request):
         result = {"message": "method not allowed"}
         CODE = 405
 
-    return HttpResponse(json.dumps(result),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+    return JsonResponse(result, status=CODE)
 
 
+# 뒤에 uid 가 붙는 함수  ex ) 정보 수정 , 정보 삭제 함수
 def emp_detail(request, emp_uid):
-
     if request.method == 'PATCH':    # 회원정보 수정할경우
         result,CODE = edit_employee(request,emp_uid)
 
@@ -219,7 +264,5 @@ def emp_detail(request, emp_uid):
     else:
         result = {"message": "method not allowed"}
         CODE = 405
-    return HttpResponse(json.dumps(result),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+    return JsonResponse(result, status=CODE)
 

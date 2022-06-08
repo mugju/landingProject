@@ -16,7 +16,20 @@ from django.http import HttpResponse, JsonResponse
 from datetime import date, timedelta, datetime
 
 
+
 def date_range(start, end):
+    """  메인 화면 sell/profit chart 에서 날짜 범위를 나타내기 위한 함수
+
+        Args:
+            start (datetime): 차트 시작 날짜
+            end (datetime): 차트 마지막 날짜
+
+        Returns:
+            list()  :  날짜 범위를 list 형태로 뿌려줌
+
+        Raises:
+            해당 사항 없음.
+        """
     start = datetime.strptime(start, "%Y-%m-%d")
     end = datetime.strptime(end, "%Y-%m-%d")
     dates = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end - start).days + 1)]
@@ -25,10 +38,19 @@ def date_range(start, end):
 
 from django.db.models import Sum
 
-def check_session(request)  :  # 해당함수는 세션 아이디를 확인 후 없을 경우에는 jsonres를 반환 합니다 있다면 유저 uid 를 반환합니다
+def check_session(request)  :
+    """  세션아이디를 확인하는 함수. 없을시에는 0 반환 , 있을시에는 user uid 반환
+
+        Args:
+            request: 클라이언트 로 부터의 요청
+
+        Returns:
+            user_uid  :  세션에 저장된 user_uid 반환. (해당 uid 가 존재 하지 않을 경우에는 0 반환)
+
+        """
     try:
         user_uid = request.session['auth']
-        print("!!!!")
+        print("user session : {}".format(user_uid))
         return user_uid
     except :
         return 0
@@ -37,12 +59,24 @@ def check_session(request)  :  # 해당함수는 세션 아이디를 확인 후 
 
 # ===============메인화면 관련 ======================
 
-def main_data(user_data, bill_data,med_data, emp_data,com_data):  # 로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋
+def main_data(user_data, bill_data,med_data, emp_data,com_data):  
+    """  로그인 및 회원가입시 메인화면에 나타내줄 데이터 셋을 만드는 함수
+
+        Args:
+            user_data: 현재 로그인한 user 에 대한 모델 객체
+            bill_data:  bill 모델 객체
+            med_data:   medicine 모델 객체
+            emp_data:   employee 모델 객체
+            com_data:   company 모델 객체
+
+        Returns:
+             output (json)   :  API 문서에 따른 user 정보와 request 정보, medicine 정보 포함/ 차트 생성에 필요한  json 데이터 포함.
+    """
     output = dict()
     output["user_uid"] = user_data[0].user_uid
     output["user_storename"] = user_data[0].user_storename
     output["user_email"] = user_data[0].user_email
-    output["user_totalreqs"] = user_data[0].req_set.filter(req_status=True).count()
+    output["user_totalreqs"] = user_data[0].req_set.count()
     output["total_medicine"]  = med_data.count()
     output["user_completedreq"] = user_data[0].req_set.filter(req_status=True).count()
     output["user_pendingreq"] = user_data[0].req_set.filter(req_status=False).count()
@@ -71,7 +105,22 @@ def main_data(user_data, bill_data,med_data, emp_data,com_data):  # 로그인 �
 # ==============로그인 함수=================
 @method_decorator(csrf_exempt, name='dispatch')
 def signin(request):
-    if request.method == "POST":  # 정상적인 접근
+    """
+    로그인 함수 / 로그인이 진행되면 세션에 데이터를 저장한다.
+        Args:
+            request : 클라이언트로 부터의 요청
+
+        Returns:
+            output (json)   :  API 문서에 따른 user 정보와 request 정보, medicine 정보 포함/ 차트 생성에 필요한  json 데이터 포함.
+
+        Raises:
+            401 {"message" : "user is lock","useTime": xx:xx:xx } : 계정이 5회 틀림으로 인해 잠김 상태일 경우
+
+            404 {"message" : "user not found" } : 해당하는 계정 정보를 찾을 수 없는 경우
+
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+    """
+    if request.ethod == "POST":  # 정상적인 접근
         user_data = json.loads(request.body)  # JSON data parsing / 여기에선 로그인 정보.
         user_email = user_data["user_email"]
         user_password = user_data["user_pw"]
@@ -133,6 +182,21 @@ def signin(request):
 # ===============회원가입 함수===============
 @method_decorator(csrf_exempt, name='dispatch')
 def signup(request):
+    """
+        회원가입 함수/ 적절한 회원정보가 작성된 경우 DB에 회원을 생성한다.
+            Args:
+                request : 클라이언트로 부터의 요청
+
+            Returns:
+                output (json)   :  API 문서에 따른 user 정보와 request 정보, medicine 정보 포함/ 차트 생성에 필요한  json 데이터 포함.
+
+            Raises:
+                400 {"message" : "email duplicates" } : 회원가입시 작성한 email 이 이미 존재하는 email 일 경우
+
+                401 {"message": "Password authorization failed"} : 비밀번호 확인 과정에서 같은 비밀번호가 입력되지 않은 경우
+
+                405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+        """
     if request.method == 'POST':
         user_data = json.loads(request.body)  # JSON data parsing / 여기 에선 회원 가입 정보.
 
@@ -177,6 +241,21 @@ def signup(request):
 
 # 패스 워드 찾기 함수 ==> 회원 정보를 찾아 json으로 ok 응답 넘김.
 def pw_find(request):
+    """
+    패스워드 찾는 함수 / 회원 email 과 storename을 기반으로 비밀번호 재설정 대상 session을 반환함.
+                Args:
+                    request : 클라이언트로 부터의 요청
+
+                Returns:
+                    output (json)   :  비밀번호 변경 가능 여부를 반환함.
+
+                Raises:
+                    400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                    401 {"message": "Incorrect user storename"} : 회원정보 확인 과정에서 잘못된 정보가 입력된 경우
+
+                    405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+    """
     if request.method == 'POST':
         user_data = json.loads(request.body)
 
@@ -193,16 +272,27 @@ def pw_find(request):
     else:
         output = {"message": "Bad request"}; CODE = 400
 
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json", status=CODE)
-
+    return JsonResponse(output,status=CODE)
 
 # =========패스 워드 재설정 ==> 유저 정보 찾은 이후에 가능함.===========
 
 def pw_set(request):
+    """
+
+    패스워드 재설정 함수 / pw_find 함수가 선행되어야 함
+        Args:
+            request : 클라이언트로 부터의 요청
+
+        Returns:
+            output (json)   :  비밀번호 변경 여부를 반환함.
+
+        Raises:
+            400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+    """
     if request.method == 'POST':
         try:
-            # user_uid = request.session["auth"]
             user_uid = check_session(request)
             user = get_object_or_404(User, user_uid=user_uid)
             new_pw = json.loads(request.body)["user_new_pw"]
@@ -213,17 +303,29 @@ def pw_set(request):
 
         except Exception as e:
             print(e)
-            output = {"message": "Bad request"}; CODE = 404
+            output = {"message": "Bad request"}; CODE = 400
+    else:
+        output = {"message": "method not allowed"}; CODE = 405
 
-    return HttpResponse(json.dumps(output),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+    return JsonResponse(output,status = CODE)
 
 
 # =================유저 삭제 함수================
 
 def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회원 탈퇴 가능
-    # session_uid = request.session["auth"]
+    """
+    유저 삭제함수
+        Args:
+            request : 클라이언트로 부터의 요청
+
+        Returns:
+            output (json)   :  유저 삭제 여부를 반환함.
+
+        Raises:
+            400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+            401 {"message" : "session ID not found"} :  권한이 없는 경우
+    """
     session_uid = check_session(request)
     if session_uid == 0 :
         return {'message': 'session ID not found'}, 401
@@ -240,9 +342,26 @@ def delete_user(request, user_uid):  # 슈퍼 유저 혹은 본인 이어야 회
 # ==============유저 정보 수정=====================
 
 def edit_user(request, user_uid):
+    """
+        유저 수정함수
+            Allowed Method:
+                PATCH , DELETE
+
+            Args:
+                request : 클라이언트로 부터의 요청
+
+            Returns:
+                output (json)   :  유저정보 수정 여부를 반환함.
+
+            Raises:
+                400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+                
+                401  {"message": "unauthorization"} : 유저정보와 세션정보가 다를  경우
+
+                405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+        """
     if request.method == 'PATCH':
         try:
-            # session_uid = request.session["auth"]
             session_uid = check_session(request)
             if session_uid == 0:
                 return JsonResponse({'message': 'session ID not found'}, status= 403)
@@ -266,14 +385,29 @@ def edit_user(request, user_uid):
 
     else: # 허용하는 메소드가 아닐경우.
         output = {"message": "method not allowed"}; CODE = 405
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+
+    return JsonResponse(output, status=CODE)
 
 
 # =============로그 아웃 함수==================
 
 def logout(request):
+    """
+        유저 로그아웃 함수
+            Allowed Method:
+                    POST
+
+            Args:
+                request : 클라이언트로 부터의 요청
+
+            Returns:
+                output (json)   :  로그아웃 성공 여부를 반환함.
+
+            Raises:
+                400 {"message" : "not find session" } : 로그인 되어있지 않은 경우
+
+                405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+        """
     if request.method == 'POST':
         try:
             auth.logout(request)
@@ -283,11 +417,25 @@ def logout(request):
             output = {"message":  "not find session"};CODE = 401
     else :
         output = {"message": "method not allowed"}; CODE = 405
-    return HttpResponse(json.dumps(output, ensure_ascii=False),
-                        content_type=u"application/json; charset=utf-8",
-                        status=CODE)
+
+    return JsonResponse(output,status=CODE)
 
 def dashboard(request) :    # 대시 보드 뷰
+    """
+            메인 화면 출력 함수
+                Args:
+                    request : 클라이언트로 부터의 요청
+
+                Returns:
+                    output (json)   :  비밀번호 변경 여부를 반환함.
+
+                Raises:
+                    400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                    403{'message': 'session ID not found'} : 세션 아이디를 찾을 수 없는 경우
+
+                    405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+            """
     session_uid = check_session(request)
     if session_uid == 0:
         return JsonResponse({'message': 'session ID not found'}, status=403)
@@ -302,6 +450,4 @@ def dashboard(request) :    # 대시 보드 뷰
 
         output = main_data(user_info, bill_data, med_data, emp_data, com_data)
 
-        return HttpResponse(json.dumps(output),
-                        content_type=u"application/json; charset=utf-8",
-                        status=200)
+        return JsonResponse(output, status=200)
