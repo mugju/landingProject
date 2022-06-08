@@ -14,9 +14,12 @@ from datetime import datetime
 
 #세션에 담긴 uid가 User에 존재하는지 확인
 def medSession(request):
+    """
+        세션 uid 확인함수
+
+    """
     try:
         sessionId = request.session['auth'] #세션에 아이디가 있는지 없는지 확인
-
     except:# except에 들어오게 되면 session에 ID가 존재하지 않는것이다.
         return JsonResponse({'message':'session ID not found'}, status=403)
     try:
@@ -36,16 +39,10 @@ def med_index(request):
                 if page !=1 :
                     start = ((int(page)*10)-10)
                     end = (int(page)*10)
-                print("!!!!!!!!!!!!!!!!!!!!!!!캐싱확인!!!!!!!!!!!!!!!!!!!!!!!!!")
-                before = datetime.now()
 
                 medicineLi = list(Medicine.objects.filter(user_uid=user_uid).prefetch_related('med_salt_set'))#미리 데이터를 캐싱하기 위해 list로 바로 DB에 접근
                 medicineAllCount = len(medicineLi)#전체 약의 개수
                 medicinePage = medicineLi[start:end]#페이징 개수만큼 잘라주기
-
-
-
-                print("DB에서 select하여 데이터 가져오는데 걸린 시간 : ",datetime.now()-before)
 
                 companyLi = list(Company.objects.filter(user_uid=user_uid).order_by('com_uid')) #user의 거래처 uid, 이름 list
                 company_list = []
