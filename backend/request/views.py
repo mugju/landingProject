@@ -16,7 +16,7 @@ def postReq(request):
             POST
             
         Args:
-            GET(int): 메뉴구성을 위한 Request List를 반환 
+            request : 클라이언트의 요청 
 
         Returns:
             GET(int): User가 작성한 Request내역을 int로 페이징하여 반환합니다.
@@ -87,10 +87,10 @@ def fixReq(request, uid):
             PATCH
             DELETE
             
-        Args:
-            PATCH(int): int로 받은 Request의 status를 변경 합니다.
-
-            DELETE: Request게시글 작성을위한 요청 
+        Args
+            request : 클라이언트의 요청
+            uid : Target Request 번호
+            
 
         Returns:
             PATCH(int): int를 uid로 가지는 Request status를 수정합니다.
