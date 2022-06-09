@@ -9,6 +9,30 @@ from request.models import Cus_req
 
 
 def postReq(request):
+    """
+    Request GET, POST 함수        
+        Allowed Method:
+            GET  
+            POST
+            
+        Args:
+            request : 클라이언트의 요청 
+
+        Returns:
+            GET(int): User가 작성한 Request내역을 int로 페이징하여 반환합니다.
+            POST: 정상적으로 게시글이 작성되면 {message: ok}를 반환합니다.
+
+        Raises:
+            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우 
+
+            401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+
+            403 {"message" : "session ID not found"} : User의 권한이 없는경우
+
+            404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+            
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
+    """
     if request.method == 'GET':
         userAuth = checkAuth(request)
         if type(userAuth) == JsonResponse:
@@ -57,6 +81,32 @@ def postReq(request):
 
 
 def fixReq(request, uid):
+    """
+    Request PATCH, DELETE 함수       
+        Allowed Method:
+            PATCH
+            DELETE
+            
+        Args
+            request : 클라이언트의 요청
+            uid : Target Request 번호
+            
+
+        Returns:
+            PATCH(int): int를 uid로 가지는 Request status를 수정합니다.
+            DELETE: Request게시글을 삭제합니다.
+
+        Raises:
+            400 {"message" : "not find session" } : 로그인 되어있지 않은 경우     
+
+            401 {"message" : "unauthorized" } : 권한없는 게시물에 접근할 경우      
+
+            403 {"message" : "session ID not found"} : User의 권한이 없는경우
+
+            404 {"message" : "user not found" } : 유저의 정보를 찾을 수 없는 경우
+
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우    
+    """
     if request.method == 'PATCH':
         userAuth = checkAuth(request)
         if type(userAuth) == JsonResponse:
