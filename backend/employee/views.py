@@ -54,6 +54,7 @@ def bank_dic(Bank, seq):
 
                     Args:
                         Bank(model) : bank 모델 객체
+
                         seq(int) : 은행별 고유 id
 
                     Returns:
@@ -186,6 +187,24 @@ def edit_employee(request,emp_uid):
 
 # =============근로자 정보 삭제=================
 def delete_employee (request, emp_uid) :
+    """
+                    유저 수정함수
+
+                        Args:
+                            request : 클라이언트로 부터의 요청
+
+                            emp_uid : employee uid
+
+                        Returns:
+                            output (json)   :  근로자 정보 삭제 여부를 반환함.
+
+                        Raises:
+                            400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+                            403 {"message" : "session ID not found" } : 저장된 세션정보가 없는 경우
+
+                            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+                    """
     useruid = check_session(request)
     if useruid == 0:
         return {'message': 'session ID not found'}, 403
@@ -199,6 +218,23 @@ def delete_employee (request, emp_uid) :
 
 
 def show_employee (request, page):
+    """
+    유저 정보 확인 함수
+
+        Args:
+            request : 클라이언트로 부터의 요청
+            page : 보고자 하는 페이지
+
+        Returns:
+            output (json)   :  근로자 정보 삭제 여부를 반환함.
+
+        Raises:
+            400 {"message" : "Bad request" } : 입력값이 잘못된 경우
+
+            403 {"message" : "session ID not found" } : 저장된 세션정보가 없는 경우
+
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+    """
     useruid = check_session(request)
     if useruid == 0:
         return {'message': 'session ID not found'}, 403
@@ -236,6 +272,22 @@ def show_employee (request, page):
 
 # 뒤에 uid가 안붙는 view 함수  ex) show 함수, create 함수
 def emp_index(request):
+    """
+    유저 확인 및 생성 분기 함수
+    
+        Args:
+            request: 클라이언트 요청
+            
+        Returns:
+            output (json)   :
+                GET : employee list 출력함수 성공여부
+
+                POST : employee 생성 함수 성공 여부
+
+        Raises:
+
+            405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+    """
     if request.method == 'GET':  # GET 방식일 경우 딕셔너리 조작후, json 변환 시도.
         try:
             page = int(request.GET.get('page'))
@@ -256,6 +308,20 @@ def emp_index(request):
 
 # 뒤에 uid 가 붙는 함수  ex ) 정보 수정 , 정보 삭제 함수
 def emp_detail(request, emp_uid):
+    """
+        근로자 정보 수정 및 삭제 분기 함수
+
+            Args:
+                request : 클라이언트 요청
+
+            Returns:
+                output (json)   :
+                    PATCH : employee 수정 함수 실행 성공여부를 나타냄.
+                    DELETE : employee 삭제함수 실행 성공여부를 나타냄.
+
+            Raises:
+                405 {"message" : "method not allowed"} :  잘못된 method 요청이 들어온 경우
+        """
     if request.method == 'PATCH':    # 회원정보 수정할경우
         result,CODE = edit_employee(request,emp_uid)
 
