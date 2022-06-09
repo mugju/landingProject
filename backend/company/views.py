@@ -32,9 +32,7 @@ def companyMain(request):
             POST
             
         Args:
-            GET(int): 메뉴구성을 위한 Company List를 반환 
-
-            POST: Company게시글 작성을위한 요청 
+            request : 클라이언트의 요청
 
         Returns:
             GET(int): User가 작성한 Company내역을 int로 페이징하여 반환합니다.
@@ -146,9 +144,8 @@ def companyDetail(request, uid):
             DELETE
             
         Args:
-            PATCH(int): int로 받은 Company의 정보를 PATCH 합니다.
-
-            DELETE(int): Company게시글 삭제를 위한 요청 
+            request : 클라이언트의 요청
+            uid : Company
 
         Returns:
             PATCH(int): 새로운 Company정보를 추가합니다.
