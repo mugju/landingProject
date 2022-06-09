@@ -18,9 +18,12 @@ def makeBill(request):
         Allowed Method:
             GET  
             POST
-
+        
+        Args: 
+            request : 클라이언트의 요청
+            
         Returns:
-            GET(int): User가 작성한 Medicine의 전체 내역에서 {'med_uid', 'med_name', 'med_sellprice'} 데이터만 반환한다.
+            GET: User가 작성한 Medicine의 전체 내역에서 {'med_uid', 'med_name', 'med_sellprice'} 데이터만 반환한다.
             POST: bill이 정상적으로 저장되면 {message: ok}를 반환합니다.
 
         Raises:
